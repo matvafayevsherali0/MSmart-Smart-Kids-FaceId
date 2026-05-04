@@ -1,0 +1,33 @@
+class AppIcons {
+  static const String signInBg = "assets/images/ech_sign_in_bg.png";
+  static const String echLogo = "assets/icons/ech_logo.svg";
+  static const String eyeOn = "assets/icons/eye_on.svg";
+  static const String success = "assets/icons/success.svg";
+  static const String warning = "assets/icons/warning.svg";
+  static const String error = "assets/icons/error.svg";
+  static const String bgDark = "assets/images/ech_bg_dark.png";
+  static const String bgLight = "assets/images/ech_bg_light.png";
+  static const String person = "assets/icons/person.svg";
+  static const String box = "assets/icons/box.svg";
+  static const String employees = "assets/icons/employees.svg";
+  static const String ppr = "assets/icons/ppr.svg";
+  static const String naryad = "assets/icons/naryad.svg";
+  static const String formon = "assets/icons/farmon.svg";
+  static const String demand = "assets/icons/demand.svg";
+  static const String devices = "assets/icons/devices.svg";
+  static const String pointMenu = "assets/icons/point_menu.svg";
+  static const String delete = "assets/icons/delete.svg";
+  static const String edit = "assets/icons/edit.svg";
+  static const String add = "assets/icons/add.svg";
+  static const String people = "assets/icons/people.svg";
+  static const String calendar = "assets/icons/calendar.svg";
+  static const String clock = "assets/icons/clock.svg";
+  static const String faceId = "assets/icons/faceId.svg";
+  static const String fingerPrint = "assets/icons/finger_print.svg";
+  static const String deletePin = "assets/icons/delete_pin.svg";
+  static const String download = "assets/icons/download.svg";
+  static const String akt = "assets/icons/akt.svg";
+  static const String send = "assets/icons/send.svg";
+  static const String eye = "assets/icons/eye.svg";
+  static const String doubleCheck = "assets/icons/double_checks.svg";
+}
