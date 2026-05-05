@@ -50,9 +50,8 @@ class _PinScreenState extends State<PinScreen> {
     final enabled = _storage.getBool(StoreKeys.biometricEnabled);
     if (!enabled) return;
     try {
-      final supported = await _auth.isDeviceSupported();
-      final canCheck = await _auth.canCheckBiometrics;
-      if (!supported || !canCheck) return;
+      final canUseBiometrics = await _canUseBiometrics();
+      if (!canUseBiometrics) return;
 
       final ok = await _auth.authenticate(
         localizedReason: 'Ilovaga kirish uchun biometrik tasdiqlashdan o‘ting',
@@ -63,7 +62,60 @@ class _PinScreenState extends State<PinScreen> {
       if (ok) {
         context.go(AppRoutes.organization);
       }
-    } catch (_) {}
+    } on LocalAuthException {
+      // Auto-login should not block the PIN fallback.
+    }
+  }
+
+  Future<bool> _canUseBiometrics({bool showError = false}) async {
+    try {
+      final supported = await _auth.isDeviceSupported();
+      final canCheck = await _auth.canCheckBiometrics;
+      final availableBiometrics = await _auth.getAvailableBiometrics();
+      final canUse = supported && canCheck && availableBiometrics.isNotEmpty;
+
+      if (!canUse && showError && mounted) {
+        await context.showPopUp(
+          status: PopUpStatus.warning,
+          message: "Qurilmada Face ID yoki fingerprint sozlanmagan",
+        );
+      }
+
+      return canUse;
+    } on LocalAuthException catch (error) {
+      if (showError && mounted) {
+        await context.showPopUp(
+          status: PopUpStatus.error,
+          message: _biometricErrorMessage(error),
+        );
+      }
+      return false;
+    }
+  }
+
+  String _biometricErrorMessage(LocalAuthException error) {
+    switch (error.code) {
+      case LocalAuthExceptionCode.noBiometricsEnrolled:
+      case LocalAuthExceptionCode.noCredentialsSet:
+        return "Qurilma sozlamalarida Face ID yoki fingerprintni yoqing";
+      case LocalAuthExceptionCode.noBiometricHardware:
+      case LocalAuthExceptionCode.biometricHardwareTemporarilyUnavailable:
+        return "Bu qurilmada biometrik tasdiqlash mavjud emas";
+      case LocalAuthExceptionCode.temporaryLockout:
+      case LocalAuthExceptionCode.biometricLockout:
+        return "Biometrik tasdiqlash vaqtincha bloklangan. Keyinroq urinib ko'ring";
+      case LocalAuthExceptionCode.uiUnavailable:
+        return "Biometrik oynani ochib bo'lmadi. Ilovani qayta ochib ko'ring";
+      case LocalAuthExceptionCode.authInProgress:
+        return "Biometrik tasdiqlash allaqachon ishga tushgan";
+      case LocalAuthExceptionCode.userCanceled:
+      case LocalAuthExceptionCode.systemCanceled:
+      case LocalAuthExceptionCode.timeout:
+      case LocalAuthExceptionCode.userRequestedFallback:
+      case LocalAuthExceptionCode.deviceError:
+      case LocalAuthExceptionCode.unknownError:
+        return "Biometrik tasdiqlash amalga oshmadi";
+    }
   }
 
   Future<void> _onContinue() async {
@@ -127,16 +179,21 @@ class _PinScreenState extends State<PinScreen> {
     if (!shouldEnable) return false;
 
     try {
-      final supported = await _auth.isDeviceSupported();
-      final canCheck = await _auth.canCheckBiometrics;
-      if (!supported || !canCheck) return false;
+      final canUseBiometrics = await _canUseBiometrics(showError: true);
+      if (!canUseBiometrics) return false;
 
       return await _auth.authenticate(
         localizedReason: 'Biometrik kirishni yoqish uchun tasdiqlang',
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );
-    } catch (_) {
+    } on LocalAuthException catch (error) {
+      if (mounted) {
+        await context.showPopUp(
+          status: PopUpStatus.error,
+          message: _biometricErrorMessage(error),
+        );
+      }
       return false;
     }
   }
