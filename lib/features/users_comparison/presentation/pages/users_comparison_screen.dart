@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../assets/colors/colors.dart';
+import '../../../../assets/theme/theme_extensions.dart';
 import '../../../../core/utils/context_extensions.dart';
 import '../../../../core/utils/service_locator.dart';
 import '../../../common/presentation/widgets/custom_button.dart';
@@ -74,18 +75,21 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
                 SizedBox(height: 12.h),
                 _CountCard(title: 'Hikvision', count: content.hikvisionIds.length),
                 if (!state.isSynchronizing)
-                  CustomButton(
-                    onPressed: () {
-                      context.read<UsersComparisonBloc>().add(
-                        DataSynchronizationUsersComparisonEvent(
-                          backendIds: content.backendIds,
-                          hikvisionIds: content.hikvisionIds,
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "Ma'lumotlarni sinxromlash",
-                      style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16, fontWeight: FontWeight.w400),
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.h),
+                    child: CustomButton(
+                      onPressed: () {
+                        context.read<UsersComparisonBloc>().add(
+                          DataSynchronizationUsersComparisonEvent(
+                            backendIds: content.backendIds,
+                            hikvisionIds: content.hikvisionIds,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Ma'lumotlarni sinxromlash",
+                        style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16, fontWeight: FontWeight.w400),
+                      ),
                     ),
                   ),
                 /*CButton(
@@ -103,19 +107,19 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
                   Padding(
                     padding: EdgeInsets.only(top: 12.h),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
                             "Hikvisionda topilgan backend da yo'q foydalanuvchilar soni:",
-                            style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 14.sp),
+                            style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
                           ),
                         ),
                         Expanded(
                           child: Text(
                             state.usersComparisonIds.length.toString(),
-                            style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 18.sp),
+                            style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 18.sp),
                           ),
                         ),
                       ],
@@ -136,9 +140,9 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text('Bekor qilish'),
+                                    child: Text('Bekor qilish', style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor)),
                                   ),
-                                  TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text("O'chirish")),
+                                  TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text("O'chirish", style: context.textTheme.bodyMedium!.copyWith(color: cRed))),
                                 ],
                               ),
                             ) ??

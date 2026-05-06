@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:msmart_kids_faceid/assets/theme/theme_extensions.dart';
 
 import '../../../../assets/colors/colors.dart';
 import '../../../../core/utils/context_extensions.dart';
@@ -58,9 +59,13 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.onPrimaryColor),
+          onPressed: () => context.pop(),
+        ),
         title: Text(
           'Hikvision foydalanuvchi',
-          style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16.sp),
+          style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
       ),
@@ -74,7 +79,7 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
         },
         builder: (context, state) {
           if (state is HikvisionLoading || state is HikvisionActionInProgress) {
-            return const Center(child: CircularProgressIndicator(color: cWhite));
+            return Center(child: CircularProgressIndicator(color: context.onPrimaryColor));
           }
 
           if (state is HikvisionUserFound) {
@@ -192,8 +197,8 @@ class _UserInfoView extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: cRed,
+                side: const BorderSide(color: cRed),
               ),
               onPressed: () async {
                 final confirm = await showDialog<bool>(
@@ -201,18 +206,18 @@ class _UserInfoView extends StatelessWidget {
                   builder: (_) => AlertDialog(
                     title: Text(
                       'Foydalanuvchini o‘chirish',
-                      style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 18.sp),
+                      style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 18.sp),
                     ),
                     content: Text(
                       'Foydalanuvchini o‘chirishni hohlaysizmi?',
-                      style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 14.sp),
+                      style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
                         child: Text(
                           'Bekor qilish',
-                          style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 14.sp),
+                          style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
                         ),
                       ),
                       TextButton(
@@ -233,6 +238,21 @@ class _UserInfoView extends StatelessWidget {
                 }
               },
               child: const Text('O‘chirish'),
+            ),
+          ),
+          SizedBox(height: 24.h,),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => context.pop(),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: cWhite,
+                side: BorderSide(color: context.onPrimaryColor),
+              ),
+              child: Text(
+                "Orqaga",
+                style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
+              ),
             ),
           ),
         ],
