@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../assets/colors/colors.dart';
+import '../../../../assets/theme/theme_extensions.dart';
 import '../../../../core/utils/context_extensions.dart';
 
 Future<bool> showLogoutDialog(BuildContext context) async {
@@ -8,10 +9,11 @@ Future<bool> showLogoutDialog(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
+        backgroundColor: context.onPrimaryColor,
         title: Text(
           "Chiqishni tasdiqlaysizmi?",
           style: context.textTheme.bodyMedium!.copyWith(
-            color: cWhite,
+            color: context.tertiaryColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -21,7 +23,8 @@ Future<bool> showLogoutDialog(BuildContext context) async {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(
               "Yo'q",
-              style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 14, fontWeight: FontWeight.w500),
+              style: context.textTheme.bodyMedium!.copyWith(
+                  color: context.tertiaryColor, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           TextButton(
@@ -43,10 +46,11 @@ Future<bool> showDeleteAccountDialog(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
+        backgroundColor: context.onPrimaryColor,
         title: Text(
           "Hisob o'chirilisinmi?",
           style: context.textTheme.bodyMedium!.copyWith(
-            color: cWhite,
+            color: context.tertiaryColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -56,7 +60,7 @@ Future<bool> showDeleteAccountDialog(BuildContext context) async {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(
               "Yo'q",
-              style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 14, fontWeight: FontWeight.w500),
+              style: context.textTheme.bodyMedium!.copyWith(color: context.tertiaryColor, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           TextButton(

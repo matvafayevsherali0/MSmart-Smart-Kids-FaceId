@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../assets/colors/colors.dart';
 import '../../../../core/utils/context_extensions.dart';
@@ -11,7 +10,8 @@ class CommonTextField extends StatelessWidget {
   final double? height;
   final bool? obscureText;
   final Widget? trailing;
-  final String hintText;
+  final String? hintText;
+  final String? labelText;
   final Color? bgColor;
   final TextInputType? keyboardType;
   final String? Function(String? value)? validator;
@@ -30,7 +30,8 @@ class CommonTextField extends StatelessWidget {
     this.trailing,
     this.bgColor,
     this.keyboardType,
-    required this.hintText,
+    this.hintText,
+    this.labelText,
     this.validator,
     this.onChanged,
     this.contentPadding,
@@ -65,6 +66,8 @@ class CommonTextField extends StatelessWidget {
           filled: true,
           hintStyle: context.textTheme.bodyLarge?.copyWith(color: cGrey, fontSize: 14, fontWeight: FontWeight.w500),
           hintText: hintText,
+          labelText: labelText,
+          labelStyle: context.textTheme.bodyLarge!.copyWith(color: cBlack, fontSize: 14, fontWeight: FontWeight.w500),
           fillColor: bgColor ?? cWhite,
           suffixIcon: trailing != null
               ? Padding(padding: const EdgeInsets.all(16), child: trailing)
@@ -91,33 +94,51 @@ class UzPhoneFormatter extends TextInputFormatter {
       TextEditingValue oldValue,
       TextEditingValue newValue,
       ) {
-    String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final rawDigits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    String localDigits = '';
 
-    if (!digits.startsWith('998')) {
-      if (digits.startsWith('9')) {
-        digits = '998$digits';
-      } else {
-        digits = '998';
-      }
+    if (rawDigits.startsWith('998')) {
+      localDigits = rawDigits.substring(3);
+    } else if (rawDigits.isNotEmpty && !'998'.startsWith(rawDigits)) {
+      // If user types without country code, treat input as local part.
+      localDigits = rawDigits;
     }
 
-    if (digits.length > 12) {
-      digits = digits.substring(0, 12);
+    if (localDigits.length > 9) {
+      localDigits = localDigits.substring(0, 9);
     }
 
-    String formatted = '+';
-
-    for (int i = 0; i < digits.length; i++) {
-      if (i == 3) formatted += ' ';
-      if (i == 5) formatted += ' ';
-      if (i == 8) formatted += ' ';
-      if (i == 10) formatted += ' ';
-      formatted += digits[i];
-    }
+    final formatted = _formatUzPhone(localDigits);
 
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
     );
+  }
+
+  String _formatUzPhone(String localDigits) {
+    int end(int value, int max) => value < max ? value : max;
+
+    final buffer = StringBuffer('+998');
+    if (localDigits.isEmpty) return buffer.toString();
+
+    buffer.write(' ');
+    final first = localDigits.substring(0, end(localDigits.length, 2));
+    buffer.write(first);
+
+    if (localDigits.length > 2) {
+      buffer.write(' ');
+      buffer.write(localDigits.substring(2, end(localDigits.length, 5)));
+    }
+    if (localDigits.length > 5) {
+      buffer.write(' ');
+      buffer.write(localDigits.substring(5, end(localDigits.length, 7)));
+    }
+    if (localDigits.length > 7) {
+      buffer.write(' ');
+      buffer.write(localDigits.substring(7, end(localDigits.length, 9)));
+    }
+
+    return buffer.toString();
   }
 }

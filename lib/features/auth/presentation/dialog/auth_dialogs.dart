@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msmart_kids_faceid/assets/theme/theme_extensions.dart';
 
 import '../../../../assets/colors/colors.dart';
 import '../../../../core/utils/context_extensions.dart';
@@ -8,10 +9,11 @@ Future<bool> showEnableBiometricDialog(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
+        backgroundColor: context.onPrimaryColor,
         title: Text(
           "Biometrik kirishni yoqasizmi?",
           style: context.textTheme.bodyMedium!.copyWith(
-            color: cBlack,
+            color: context.tertiaryColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -21,7 +23,7 @@ Future<bool> showEnableBiometricDialog(BuildContext context) async {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(
               "Yo'q",
-              style: context.textTheme.bodyMedium!.copyWith(color: cGrey),
+              style: context.textTheme.bodyMedium!.copyWith(color: context.tertiaryColor),
             ),
           ),
           TextButton(
@@ -50,17 +52,18 @@ Future<void> showForceUpdateDialog(
       return PopScope(
         canPop: false,
         child: AlertDialog(
+          backgroundColor: context.onPrimaryColor,
           title: Text(
             "Yangilash talab qilinadi",
             style: context.textTheme.bodyMedium!.copyWith(
-              color: cBlack,
+              backgroundColor: context.tertiaryColor,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
           content: Text(
             "Ilovaning yangi versiyasi mavjud. Davom etish uchun ilovani yangilang.",
-            style: context.textTheme.bodyMedium!.copyWith(color: cBlack),
+            style: context.textTheme.bodyMedium!.copyWith(backgroundColor: context.tertiaryColor,),
           ),
           actions: [
             TextButton(

@@ -47,7 +47,7 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
     return BlocBuilder<UsersComparisonBloc, UsersComparisonState>(
       builder: (context, state) {
         if (state is UsersComparisonLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator.adaptive()));
+          return Scaffold(body: Center(child: CircularProgressIndicator(color: context.onPrimaryColor)));
         }
 
         if (state is UsersComparisonFailure) {
