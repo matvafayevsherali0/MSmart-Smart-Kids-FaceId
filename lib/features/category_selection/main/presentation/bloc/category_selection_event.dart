@@ -47,6 +47,11 @@ class CategoryPupilsLoadMore extends CategorySelectionEvent {
   const CategoryPupilsLoadMore();
 }
 
+/// Qidiruv va guruh o‘zgartirilmasdan ro‘yxatni qayta yuklaydi.
+class CategoryPupilsRefresh extends CategorySelectionEvent {
+  const CategoryPupilsRefresh();
+}
+
 class CategoryEmployeesStarted extends CategorySelectionEvent {
   final String organizationId;
 
@@ -76,4 +81,9 @@ class CategoryEmployeesPositionChanged extends CategorySelectionEvent {
 
 class CategoryEmployeesLoadMore extends CategorySelectionEvent {
   const CategoryEmployeesLoadMore();
+}
+
+/// Qidiruv va tanlangan lavozim saqlanadi.
+class CategoryEmployeesRefresh extends CategorySelectionEvent {
+  const CategoryEmployeesRefresh();
 }

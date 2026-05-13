@@ -202,6 +202,8 @@ final router = GoRouter(
           deviceId: (map['deviceId'] ?? '').toString(),
           staffId: _optionalRouteString(map['staffId']),
           studentId: _optionalRouteString(map['studentId']),
+          faceEnrollmentId: _optionalRouteString(map['faceEnrollmentId']),
+          faceEnrollmentFileRelativeUrl: _optionalRouteString(map['faceEnrollmentFileRelativeUrl']),
         );
       },
     ),

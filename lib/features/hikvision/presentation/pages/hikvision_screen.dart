@@ -22,6 +22,8 @@ class HikvisionScreen extends StatefulWidget {
   final String deviceId;
   final String? studentId;
   final String? staffId;
+  final String? faceEnrollmentId;
+  final String? faceEnrollmentFileRelativeUrl;
 
   const HikvisionScreen({
     super.key,
@@ -34,6 +36,8 @@ class HikvisionScreen extends StatefulWidget {
     this.deviceId = "",
     this.studentId,
     this.staffId,
+    this.faceEnrollmentId,
+    this.faceEnrollmentFileRelativeUrl,
   });
 
   @override
@@ -51,7 +55,13 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
         password: widget.hikvisionPassword,
       );
     }
-    context.read<HikvisionBloc>().add(HikvisionStarted(employeeNo: widget.employeeNo, name: widget.name));
+    context.read<HikvisionBloc>().add(
+      HikvisionStarted(
+        employeeNo: widget.employeeNo,
+        name: widget.name,
+        faceEnrollmentFileRelativeUrl: widget.faceEnrollmentFileRelativeUrl,
+      ),
+    );
   }
 
   @override
@@ -91,6 +101,7 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
               deviceId: widget.deviceId,
               studentId: widget.studentId,
               staffId: widget.staffId,
+              faceEnrollmentId: widget.faceEnrollmentId,
               onDeleteSuccess: () {
                 if (!mounted) return;
                 context.pop();
@@ -122,6 +133,7 @@ class _UserInfoView extends StatelessWidget {
   final String? studentId;
   final String? staffId;
   final VoidCallback onDeleteSuccess;
+  final String? faceEnrollmentId;
 
   const _UserInfoView({
     required this.user,
@@ -132,6 +144,7 @@ class _UserInfoView extends StatelessWidget {
     required this.staffId,
     required this.studentId,
     required this.onDeleteSuccess,
+    required this.faceEnrollmentId,
   });
 
   @override
@@ -233,7 +246,11 @@ class _UserInfoView extends StatelessWidget {
 
                 if (confirm == true && context.mounted) {
                   context.read<HikvisionBloc>().add(
-                    HikvisionDeleteUserPressed(employeeNo: user.employeeNo, onSuccess: onDeleteSuccess),
+                    HikvisionDeleteUserPressed(
+                      employeeNo: user.employeeNo,
+                      onSuccess: onDeleteSuccess,
+                      faceEnrollmentId: faceEnrollmentId,
+                    ),
                   );
                 }
               },

@@ -14,6 +14,8 @@ abstract class FaceEnrollmentRemoteDataSource {
     required String organizationId,
     required String deviceId,
   });
+
+  Future<void> deleteFaceEnrollment(String id);
 }
 
 class FaceEnrollmentDataSourceImpl implements FaceEnrollmentRemoteDataSource {
@@ -96,6 +98,33 @@ class FaceEnrollmentDataSourceImpl implements FaceEnrollmentRemoteDataSource {
     if (body == null) {
       throw Exception('Javob tanasi bo‘sh');
     }
+    if (body['success'] != true) {
+      throw Exception(body['message']?.toString() ?? body.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteFaceEnrollment(String id) async {
+    final trimmedId = id.trim();
+    if (trimmedId.isEmpty) {
+      throw Exception('faceEnrollment id bo‘sh');
+    }
+
+    final response = await _dio.delete<Map<String, dynamic>>(
+      '$faceEnrollmentEndpoint/$trimmedId',
+      options: Options(
+        contentType: Headers.jsonContentType,
+        headers: const {Headers.acceptHeader: Headers.jsonContentType},
+      ),
+    );
+
+    final status = response.statusCode;
+    if (status == null || status < 200 || status >= 300) {
+      throw Exception('DELETE $faceEnrollmentEndpoint: $status ${response.statusMessage}');
+    }
+
+    final body = response.data;
+    if (body == null) return;
     if (body['success'] != true) {
       throw Exception(body['message']?.toString() ?? body.toString());
     }

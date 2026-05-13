@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../../../../assets/constants/network_constants.dart';
 import '../../../../core/exceptions/failures.dart';
 import '../../../../core/utils/service_locator.dart';
 import '../../../face_enrollment/domain/repository/face_enrollment_repository.dart';
@@ -38,8 +39,30 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
               emit(HikvisionUserFound(user, photoBytes: bytesResult.right));
               return;
             }
+            emit(HikvisionUserFound(user));
+            return;
           }
         }
+
+        final rel = event.faceEnrollmentFileRelativeUrl?.trim() ?? '';
+        if (rel.isNotEmpty) {
+          final fullUrl = resolveFaceEnrollmentImageUrl(rel);
+          final addResult = await _repository.addFaceByUrl(employeeNo: user.employeeNo, faceUrl: fullUrl);
+          if (addResult.isRight) {
+            final after = await _repository.getFaceUrlByEmployeeNo(user.employeeNo);
+            if (after.isRight) {
+              final u = after.right;
+              if (u != null && u.isNotEmpty) {
+                final bytesResult = await _repository.downloadBytesWithDigest(Uri.parse(u));
+                if (bytesResult.isRight) {
+                  emit(HikvisionUserFound(user, photoBytes: bytesResult.right));
+                  return;
+                }
+              }
+            }
+          }
+        }
+
         emit(HikvisionUserFound(user));
       } else {
         emit(HikvisionUserNotFound(employeeNo: event.employeeNo, name: event.name));
@@ -169,6 +192,20 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
       final f = result.left;
       emit(HikvisionFailure(f.errorMessage ?? f.toString()));
       return;
+    }
+    final faceEnrollmentId = event.faceEnrollmentId?.trim() ?? '';
+    if (faceEnrollmentId.isNotEmpty) {
+      final deleteEnrollmentResult = await _faceEnrollment.deleteFaceEnrollment(faceEnrollmentId);
+      if (deleteEnrollmentResult.isLeft) {
+        final f = deleteEnrollmentResult.left;
+        emit(
+          HikvisionFailure(
+            'Hikvision foydalanuvchisi o‘chirildi, lekin backend face-enrollment o‘chirilmadi: ${f.errorMessage ?? f}',
+          ),
+        );
+        emit(HikvisionUserNotFound(employeeNo: event.employeeNo, name: ''));
+        return;
+      }
     }
     event.onSuccess.call();
     emit(const HikvisionSuccess('Foydalanuvchi o‘chirildi'));

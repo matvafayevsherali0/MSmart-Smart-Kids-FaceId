@@ -55,6 +55,9 @@ class CategorySelectionMapper {
               isActive: e.isActive,
               enrolledAt: e.enrolledAt,
               hasFaceEnrollment: e.faceEnrollment != null,
+              faceEnrollmentId: _extractFaceEnrollmentId(e.faceEnrollment),
+              faceEnrollmentFileRelativeUrl:
+                  _extractFaceEnrollmentFileRelativeUrl(e.faceEnrollment),
             ),
           )
           .toList(),
@@ -81,6 +84,9 @@ class CategorySelectionMapper {
               staffType: e.staffType,
               isActive: e.isActive,
               hasFaceEnrollment: e.faceEnrollment != null,
+              faceEnrollmentId: _extractFaceEnrollmentId(e.faceEnrollment),
+              faceEnrollmentFileRelativeUrl:
+                  _extractFaceEnrollmentFileRelativeUrl(e.faceEnrollment),
             ),
           )
           .toList(),
@@ -114,5 +120,34 @@ class CategorySelectionMapper {
         totalPages: response.data.meta.totalPages ?? 0,
       ),
     );
+  }
+
+  String _extractFaceEnrollmentId(Object? raw) {
+    if (raw is Map<String, dynamic>) {
+      final v = raw['id']?.toString() ?? '';
+      return v.trim();
+    }
+    if (raw is Map) {
+      final v = raw['id']?.toString() ?? '';
+      return v.trim();
+    }
+    return '';
+  }
+
+  /// `file.url` — o‘chirilgan enrollment uchun rasm URL berilmaydi.
+  String _extractFaceEnrollmentFileRelativeUrl(Object? raw) {
+    Map<dynamic, dynamic>? fe;
+    if (raw is Map<String, dynamic>) {
+      fe = raw;
+    } else if (raw is Map) {
+      fe = raw;
+    }
+    if (fe == null) return '';
+    if (fe['isDeleted'] == true) return '';
+
+    final file = fe['file'];
+    if (file is! Map) return '';
+    final url = file['url']?.toString().trim() ?? '';
+    return url;
   }
 }

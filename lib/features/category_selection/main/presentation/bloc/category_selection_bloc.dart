@@ -27,10 +27,12 @@ class CategorySelectionBloc
     on<CategoryPupilsStarted>(_onPupilsStarted);
     on<CategoryPupilsSearchChanged>(_onPupilsSearchChanged);
     on<CategoryPupilsLoadMore>(_onPupilsLoadMore);
+    on<CategoryPupilsRefresh>(_onPupilsRefresh);
     on<CategoryEmployeesStarted>(_onEmployeesStarted);
     on<CategoryEmployeesSearchChanged>(_onEmployeesSearchChanged);
     on<CategoryEmployeesPositionChanged>(_onEmployeesPositionChanged);
     on<CategoryEmployeesLoadMore>(_onEmployeesLoadMore);
+    on<CategoryEmployeesRefresh>(_onEmployeesRefresh);
   }
 
   String _failureMessage(Object failure) {
@@ -133,7 +135,7 @@ class CategorySelectionBloc
     _organizationId = event.organizationId.trim();
     _classGroupId = event.classGroupId.trim();
     emit(state.copyWith(search: '', pupils: const CategoryPupilsLoading()));
-    await _loadPupils(emit);
+    await _loadPupils(emit, forPullRefresh: false);
   }
 
   FutureOr<void> _onPupilsSearchChanged(
@@ -146,14 +148,20 @@ class CategorySelectionBloc
         pupils: const CategoryPupilsLoading(),
       ),
     );
-    await _loadPupils(emit);
+    await _loadPupils(emit, forPullRefresh: false);
   }
 
-  Future<void> _loadPupils(Emitter<CategorySelectionState> emit) async {
+  Future<void> _loadPupils(
+    Emitter<CategorySelectionState> emit, {
+    required bool forPullRefresh,
+  }) async {
     if (_organizationId.isEmpty) {
       emit(
         state.copyWith(
-          pupils: const CategoryPupilsMessage('Tashkilot tanlanmagan.'),
+          pupils: CategoryPupilsMessage(
+            'Tashkilot tanlanmagan.',
+            errorSeq: forPullRefresh ? _nextPupilsErrorSeq() : 0,
+          ),
         ),
       );
       return;
@@ -162,7 +170,10 @@ class CategorySelectionBloc
     if (_classGroupId.isEmpty) {
       emit(
         state.copyWith(
-          pupils: const CategoryPupilsMessage('Guruh tanlanmagan.'),
+          pupils: CategoryPupilsMessage(
+            'Guruh tanlanmagan.',
+            errorSeq: forPullRefresh ? _nextPupilsErrorSeq() : 0,
+          ),
         ),
       );
       return;
@@ -177,12 +188,14 @@ class CategorySelectionBloc
 
     if (result.isRight) {
       final data = result.right;
+      final refreshSeq = _nextPupilsRefreshSeq(forPullRefresh);
       emit(
         state.copyWith(
           pupils: CategoryPupilsContent(
             items: data.items,
             page: data.meta.page,
             hasMore: data.meta.totalPages > data.meta.page,
+            refreshSeq: refreshSeq,
           ),
         ),
       );
@@ -191,9 +204,25 @@ class CategorySelectionBloc
 
     emit(
       state.copyWith(
-        pupils: CategoryPupilsMessage(_failureMessage(result.left)),
+        pupils: CategoryPupilsMessage(
+          _failureMessage(result.left),
+          errorSeq: forPullRefresh ? _nextPupilsErrorSeq() : 0,
+        ),
       ),
     );
+  }
+
+  int _nextPupilsRefreshSeq(bool forPullRefresh) {
+    if (!forPullRefresh) return 0;
+    final p = state.pupils;
+    if (p is CategoryPupilsContent) return p.refreshSeq + 1;
+    return 1;
+  }
+
+  int _nextPupilsErrorSeq() {
+    final p = state.pupils;
+    if (p is CategoryPupilsMessage) return p.errorSeq + 1;
+    return 1;
   }
 
   FutureOr<void> _onPupilsLoadMore(
@@ -235,6 +264,13 @@ class CategorySelectionBloc
     }
   }
 
+  FutureOr<void> _onPupilsRefresh(
+    CategoryPupilsRefresh event,
+    Emitter<CategorySelectionState> emit,
+  ) async {
+    await _loadPupils(emit, forPullRefresh: true);
+  }
+
   FutureOr<void> _onEmployeesStarted(
     CategoryEmployeesStarted event,
     Emitter<CategorySelectionState> emit,
@@ -250,7 +286,7 @@ class CategorySelectionBloc
     );
 
     await _loadPositions(emit);
-    await _loadEmployees(emit);
+    await _loadEmployees(emit, forPullRefresh: false);
   }
 
   FutureOr<void> _onEmployeesSearchChanged(
@@ -263,7 +299,7 @@ class CategorySelectionBloc
         employees: const CategoryEmployeesLoading(),
       ),
     );
-    await _loadEmployees(emit);
+    await _loadEmployees(emit, forPullRefresh: false);
   }
 
   FutureOr<void> _onEmployeesPositionChanged(
@@ -276,7 +312,7 @@ class CategorySelectionBloc
         employees: const CategoryEmployeesLoading(),
       ),
     );
-    await _loadEmployees(emit);
+    await _loadEmployees(emit, forPullRefresh: false);
   }
 
   Future<void> _loadPositions(Emitter<CategorySelectionState> emit) async {
@@ -306,11 +342,17 @@ class CategorySelectionBloc
     );
   }
 
-  Future<void> _loadEmployees(Emitter<CategorySelectionState> emit) async {
+  Future<void> _loadEmployees(
+    Emitter<CategorySelectionState> emit, {
+    required bool forPullRefresh,
+  }) async {
     if (_organizationId.isEmpty) {
       emit(
         state.copyWith(
-          employees: const CategoryEmployeesMessage('Tashkilot tanlanmagan.'),
+          employees: CategoryEmployeesMessage(
+            'Tashkilot tanlanmagan.',
+            errorSeq: forPullRefresh ? _nextEmployeesErrorSeq() : 0,
+          ),
         ),
       );
       return;
@@ -325,12 +367,14 @@ class CategorySelectionBloc
 
     if (result.isRight) {
       final data = result.right;
+      final refreshSeq = _nextEmployeesRefreshSeq(forPullRefresh);
       emit(
         state.copyWith(
           employees: CategoryEmployeesContent(
             items: data.items,
             page: data.meta.page,
             hasMore: data.meta.totalPages > data.meta.page,
+            refreshSeq: refreshSeq,
           ),
         ),
       );
@@ -339,9 +383,25 @@ class CategorySelectionBloc
 
     emit(
       state.copyWith(
-        employees: CategoryEmployeesMessage(_failureMessage(result.left)),
+        employees: CategoryEmployeesMessage(
+          _failureMessage(result.left),
+          errorSeq: forPullRefresh ? _nextEmployeesErrorSeq() : 0,
+        ),
       ),
     );
+  }
+
+  int _nextEmployeesRefreshSeq(bool forPullRefresh) {
+    if (!forPullRefresh) return 0;
+    final e = state.employees;
+    if (e is CategoryEmployeesContent) return e.refreshSeq + 1;
+    return 1;
+  }
+
+  int _nextEmployeesErrorSeq() {
+    final e = state.employees;
+    if (e is CategoryEmployeesMessage) return e.errorSeq + 1;
+    return 1;
   }
 
   FutureOr<void> _onEmployeesLoadMore(
@@ -381,5 +441,12 @@ class CategorySelectionBloc
     } catch (_) {
       emit(state.copyWith(employees: current.copyWith(isLoadingMore: false)));
     }
+  }
+
+  FutureOr<void> _onEmployeesRefresh(
+    CategoryEmployeesRefresh event,
+    Emitter<CategorySelectionState> emit,
+  ) async {
+    await _loadEmployees(emit, forPullRefresh: true);
   }
 }

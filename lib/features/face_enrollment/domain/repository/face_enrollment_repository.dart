@@ -13,4 +13,6 @@ abstract class FaceEnrollmentRepository {
     required String organizationId,
     required String deviceId,
   });
+
+  Future<Either<Failure, void>> deleteFaceEnrollment(String id);
 }

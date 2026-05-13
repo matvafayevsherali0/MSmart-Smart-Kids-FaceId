@@ -35,6 +35,20 @@ const fileEndpoint = "api/file/upload";
 
 // face enrollment (backend)
 const faceEnrollmentFromDeviceEndpoint = "api/face-enrollment/from-device";
+const faceEnrollmentEndpoint = "api/face-enrollment";
+
+/// Face enrollment rasmlari CDN (staff/student `faceEnrollment.file.url` bundan yig‘iladi).
+const faceEnrollmentImageBaseUrl = 'https://api.msmartkids.uz';
+
+String resolveFaceEnrollmentImageUrl(String relativeOrAbsolute) {
+  final t = relativeOrAbsolute.trim();
+  if (t.isEmpty) return '';
+  if (t.startsWith('http://') || t.startsWith('https://')) return t;
+  final base = faceEnrollmentImageBaseUrl.endsWith('/')
+      ? faceEnrollmentImageBaseUrl.substring(0, faceEnrollmentImageBaseUrl.length - 1)
+      : faceEnrollmentImageBaseUrl;
+  return t.startsWith('/') ? '$base$t' : '$base/$t';
+}
 
 // hikvision
 const hikvisionUserInfoEndpoint = "hikvision/users/";

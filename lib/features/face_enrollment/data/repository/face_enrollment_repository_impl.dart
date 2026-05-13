@@ -39,4 +39,14 @@ class FaceEnrollmentRepositoryImpl implements FaceEnrollmentRepository {
       return Left(AppFailure(errorMessage: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> deleteFaceEnrollment(String id) async {
+    try {
+      await _remote.deleteFaceEnrollment(id);
+      return Right(null);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
 }

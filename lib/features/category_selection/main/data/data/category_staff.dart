@@ -22,6 +22,9 @@ class CategoryStaffItem extends Equatable {
   final String staffType;
   final bool isActive;
   final bool hasFaceEnrollment;
+  final String faceEnrollmentId;
+  /// `faceEnrollment.file.url` (masalan `/uploads/...`); bo‘sh bo‘lishi mumkin.
+  final String faceEnrollmentFileRelativeUrl;
 
   const CategoryStaffItem({
     this.id = '',
@@ -33,6 +36,8 @@ class CategoryStaffItem extends Equatable {
     this.staffType = '',
     this.isActive = false,
     this.hasFaceEnrollment = false,
+    this.faceEnrollmentId = '',
+    this.faceEnrollmentFileRelativeUrl = '',
   });
 
   @override
@@ -46,5 +51,7 @@ class CategoryStaffItem extends Equatable {
     staffType,
     isActive,
     hasFaceEnrollment,
+    faceEnrollmentId,
+    faceEnrollmentFileRelativeUrl,
   ];
 }

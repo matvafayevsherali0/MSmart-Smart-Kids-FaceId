@@ -23,6 +23,8 @@ class CategoryPupilItem extends Equatable {
   final bool isActive;
   final String enrolledAt;
   final bool hasFaceEnrollment;
+  final String faceEnrollmentId;
+  final String faceEnrollmentFileRelativeUrl;
 
   const CategoryPupilItem({
     this.id = '',
@@ -35,6 +37,8 @@ class CategoryPupilItem extends Equatable {
     this.isActive = false,
     this.enrolledAt = '',
     this.hasFaceEnrollment = false,
+    this.faceEnrollmentId = '',
+    this.faceEnrollmentFileRelativeUrl = '',
   });
 
   @override
@@ -49,5 +53,7 @@ class CategoryPupilItem extends Equatable {
     isActive,
     enrolledAt,
     hasFaceEnrollment,
+    faceEnrollmentId,
+    faceEnrollmentFileRelativeUrl,
   ];
 }

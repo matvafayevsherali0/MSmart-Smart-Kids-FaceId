@@ -118,12 +118,14 @@ class CategoryPupilsContent extends CategoryPupilsState {
   final bool isLoadingMore;
   final int page;
   final bool hasMore;
+  final int refreshSeq;
 
   const CategoryPupilsContent({
     this.items = const [],
     this.isLoadingMore = false,
     this.page = 1,
     this.hasMore = false,
+    this.refreshSeq = 0,
   });
 
   CategoryPupilsContent copyWith({
@@ -131,26 +133,29 @@ class CategoryPupilsContent extends CategoryPupilsState {
     bool? isLoadingMore,
     int? page,
     bool? hasMore,
+    int? refreshSeq,
   }) {
     return CategoryPupilsContent(
       items: items ?? this.items,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
+      refreshSeq: refreshSeq ?? this.refreshSeq,
     );
   }
 
   @override
-  List<Object?> get props => [items, isLoadingMore, page, hasMore];
+  List<Object?> get props => [items, isLoadingMore, page, hasMore, refreshSeq];
 }
 
 class CategoryPupilsMessage extends CategoryPupilsState {
   final String content;
+  final int errorSeq;
 
-  const CategoryPupilsMessage(this.content);
+  const CategoryPupilsMessage(this.content, {this.errorSeq = 0});
 
   @override
-  List<Object?> get props => [content];
+  List<Object?> get props => [content, errorSeq];
 }
 
 sealed class CategoryEmployeesState extends Equatable {
@@ -169,12 +174,14 @@ class CategoryEmployeesContent extends CategoryEmployeesState {
   final bool isLoadingMore;
   final int page;
   final bool hasMore;
+  final int refreshSeq;
 
   const CategoryEmployeesContent({
     this.items = const [],
     this.isLoadingMore = false,
     this.page = 1,
     this.hasMore = false,
+    this.refreshSeq = 0,
   });
 
   CategoryEmployeesContent copyWith({
@@ -182,26 +189,29 @@ class CategoryEmployeesContent extends CategoryEmployeesState {
     bool? isLoadingMore,
     int? page,
     bool? hasMore,
+    int? refreshSeq,
   }) {
     return CategoryEmployeesContent(
       items: items ?? this.items,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
+      refreshSeq: refreshSeq ?? this.refreshSeq,
     );
   }
 
   @override
-  List<Object?> get props => [items, isLoadingMore, page, hasMore];
+  List<Object?> get props => [items, isLoadingMore, page, hasMore, refreshSeq];
 }
 
 class CategoryEmployeesMessage extends CategoryEmployeesState {
   final String content;
+  final int errorSeq;
 
-  const CategoryEmployeesMessage(this.content);
+  const CategoryEmployeesMessage(this.content, {this.errorSeq = 0});
 
   @override
-  List<Object?> get props => [content];
+  List<Object?> get props => [content, errorSeq];
 }
 
 sealed class CategoryPositionsState extends Equatable {

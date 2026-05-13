@@ -11,11 +11,17 @@ sealed class HikvisionEvent extends Equatable {
 class HikvisionStarted extends HikvisionEvent {
   final String employeeNo;
   final String name;
+  /// Backend `faceEnrollment.file.url` (nisbiy yoki to‘liq); Hikvisionda yuz bo‘lmasa shu yerdan qo‘shiladi.
+  final String? faceEnrollmentFileRelativeUrl;
 
-  const HikvisionStarted({required this.employeeNo, required this.name});
+  const HikvisionStarted({
+    required this.employeeNo,
+    required this.name,
+    this.faceEnrollmentFileRelativeUrl,
+  });
 
   @override
-  List<Object?> get props => [employeeNo, name];
+  List<Object?> get props => [employeeNo, name, faceEnrollmentFileRelativeUrl];
 }
 
 class HikvisionCreateUserPressed extends HikvisionEvent {
@@ -53,10 +59,15 @@ class HikvisionAddPhotoPressed extends HikvisionEvent {
 class HikvisionDeleteUserPressed extends HikvisionEvent {
   final String employeeNo;
   final VoidCallback onSuccess;
+  final String? faceEnrollmentId;
 
-  const HikvisionDeleteUserPressed({required this.employeeNo, required this.onSuccess});
+  const HikvisionDeleteUserPressed({
+    required this.employeeNo,
+    required this.onSuccess,
+    this.faceEnrollmentId,
+  });
 
   @override
-  List<Object?> get props => [employeeNo];
+  List<Object?> get props => [employeeNo, faceEnrollmentId];
 }
 

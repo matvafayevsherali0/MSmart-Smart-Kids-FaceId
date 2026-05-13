@@ -84,7 +84,23 @@ class _PupilsScreenState extends State<PupilsScreen> {
     });
   }
 
-  void _openHikvision(String id, String name) {
+  Future<void> _pullRefreshPupils() async {
+    final bloc = context.read<CategorySelectionBloc>();
+    final done = bloc.stream.firstWhere(
+      (s) =>
+          s.pupils is CategoryPupilsContent ||
+          s.pupils is CategoryPupilsMessage,
+    );
+    bloc.add(const CategoryPupilsRefresh());
+    await done;
+  }
+
+  void _openHikvision(
+    String id,
+    String name,
+    String faceEnrollmentId,
+    String faceEnrollmentFileRelativeUrl,
+  ) {
     context.push(
       AppRoutes.hikvision,
       extra: {
@@ -96,6 +112,8 @@ class _PupilsScreenState extends State<PupilsScreen> {
         'organizationId': widget.organizationId,
         'deviceId': widget.deviceId,
         'staffId': null,
+        'faceEnrollmentId': faceEnrollmentId,
+        'faceEnrollmentFileRelativeUrl': faceEnrollmentFileRelativeUrl,
         'studentId': id,
       },
     );
@@ -134,10 +152,15 @@ class _PupilsScreenState extends State<PupilsScreen> {
                 ),
                 SizedBox(height: 12.h),
                 Expanded(
-                  child: _PupilsBody(
-                    state: state.pupils,
-                    scrollController: _scrollController,
-                    onTap: _openHikvision,
+                  child: RefreshIndicator(
+                    color: cBlack,
+                    backgroundColor: Colors.transparent,
+                    onRefresh: _pullRefreshPupils,
+                    child: _PupilsBody(
+                      state: state.pupils,
+                      scrollController: _scrollController,
+                      onTap: _openHikvision,
+                    ),
                   ),
                 ),
               ],
@@ -168,7 +191,12 @@ String _photoUrl(String photoId) {
 class _PupilsBody extends StatelessWidget {
   final CategoryPupilsState state;
   final ScrollController scrollController;
-  final void Function(String id, String name) onTap;
+  final void Function(
+    String id,
+    String name,
+    String faceEnrollmentId,
+    String faceEnrollmentFileRelativeUrl,
+  ) onTap;
 
   const _PupilsBody({
     required this.state,
@@ -178,45 +206,75 @@ class _PupilsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final minScrollExtent = MediaQuery.sizeOf(context).height * 0.35;
+
     if (state is CategoryPupilsLoading) {
-      return Center(
-        child: SizedBox(
-          width: 20.sp,
-          height: 20.sp,
-          child: CircularProgressIndicator(color: cBlack, strokeWidth: 2.sp),
-        ),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: SizedBox(
+                width: 20.sp,
+                height: 20.sp,
+                child: CircularProgressIndicator(color: cBlack, strokeWidth: 2.sp),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
     if (state is CategoryPupilsMessage) {
       final message = (state as CategoryPupilsMessage).content;
-      return Center(
-        child: Text(
-          message.isEmpty ? 'Tarbiyalanuvchilarni yuklab bo‘lmadi' : message,
-          textAlign: TextAlign.center,
-          style: context.textTheme.bodyMedium!.copyWith(
-            color: cBlack,
-            fontSize: 14.sp,
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: Text(
+                message.isEmpty ? 'Tarbiyalanuvchilarni yuklab bo‘lmadi' : message,
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: cBlack,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       );
     }
 
     final data = state as CategoryPupilsContent;
     if (data.items.isEmpty) {
-      return Center(
-        child: Text(
-          'Tarbiyalanuvchilar topilmadi',
-          style: context.textTheme.bodyMedium!.copyWith(
-            color: cBlack,
-            fontSize: 14.sp,
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: Text(
+                'Tarbiyalanuvchilar topilmadi',
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: cBlack,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       );
     }
 
     return ListView.builder(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: data.items.length + (data.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= data.items.length) {
@@ -295,7 +353,12 @@ class _PupilsBody extends StatelessWidget {
               ],
             ),
             trail: Icon(Icons.chevron_right, color: cGrey, size: 22.sp),
-            onTap: () => onTap(pupil.id, pupil.fullName),
+            onTap: () => onTap(
+              pupil.id,
+              pupil.fullName,
+              pupil.faceEnrollmentId,
+              pupil.faceEnrollmentFileRelativeUrl,
+            ),
           ),
         );
       },

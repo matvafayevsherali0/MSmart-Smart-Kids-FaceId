@@ -79,7 +79,23 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
     });
   }
 
-  void _openHikvision(String id, String name) {
+  Future<void> _pullRefreshEmployees() async {
+    final bloc = context.read<CategorySelectionBloc>();
+    final done = bloc.stream.firstWhere(
+      (s) =>
+          s.employees is CategoryEmployeesContent ||
+          s.employees is CategoryEmployeesMessage,
+    );
+    bloc.add(const CategoryEmployeesRefresh());
+    await done;
+  }
+
+  void _openHikvision(
+    String id,
+    String name,
+    String faceEnrollmentId,
+    String faceEnrollmentFileRelativeUrl,
+  ) {
     context.push(
       AppRoutes.hikvision,
       extra: {
@@ -91,6 +107,8 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
         'organizationId': widget.organizationId,
         'deviceId': widget.deviceId,
         'staffId': id,
+        'faceEnrollmentId': faceEnrollmentId,
+        'faceEnrollmentFileRelativeUrl': faceEnrollmentFileRelativeUrl,
         'studentId': null,
       },
     );
@@ -131,16 +149,21 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                 _PositionDropdown(state: state),
                 SizedBox(height: 12.h),
                 Expanded(
-                  child: _EmployeesBody(
-                    state: state.employees,
-                    scrollController: _scrollController,
-                    positionNameById: {
-                      for (final position in _positionsFromState(
-                        state.positions,
-                      ))
-                        position.id: position.name,
-                    },
-                    onTap: _openHikvision,
+                  child: RefreshIndicator(
+                    color: cBlack,
+                    backgroundColor: Colors.transparent,
+                    onRefresh: _pullRefreshEmployees,
+                    child: _EmployeesBody(
+                      state: state.employees,
+                      scrollController: _scrollController,
+                      positionNameById: {
+                        for (final position in _positionsFromState(
+                          state.positions,
+                        ))
+                          position.id: position.name,
+                      },
+                      onTap: _openHikvision,
+                    ),
                   ),
                 ),
               ],
@@ -257,7 +280,12 @@ class _EmployeesBody extends StatelessWidget {
   final CategoryEmployeesState state;
   final ScrollController scrollController;
   final Map<String, String> positionNameById;
-  final void Function(String id, String name) onTap;
+  final void Function(
+    String id,
+    String name,
+    String faceEnrollmentId,
+    String faceEnrollmentFileRelativeUrl,
+  ) onTap;
 
   const _EmployeesBody({
     required this.state,
@@ -268,45 +296,75 @@ class _EmployeesBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final minScrollExtent = MediaQuery.sizeOf(context).height * 0.35;
+
     if (state is CategoryEmployeesLoading) {
-      return Center(
-        child: SizedBox(
-          width: 20.sp,
-          height: 20.sp,
-          child: CircularProgressIndicator(color: cBlack, strokeWidth: 2.sp),
-        ),
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: SizedBox(
+                width: 20.sp,
+                height: 20.sp,
+                child: CircularProgressIndicator(color: cBlack, strokeWidth: 2.sp),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
     if (state is CategoryEmployeesMessage) {
       final message = (state as CategoryEmployeesMessage).content;
-      return Center(
-        child: Text(
-          message.isEmpty ? 'Xodimlarni yuklab bo‘lmadi' : message,
-          textAlign: TextAlign.center,
-          style: context.textTheme.bodyMedium!.copyWith(
-            color: cBlack,
-            fontSize: 14.sp,
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: Text(
+                message.isEmpty ? 'Xodimlarni yuklab bo‘lmadi' : message,
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: cBlack,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       );
     }
 
     final data = state as CategoryEmployeesContent;
     if (data.items.isEmpty) {
-      return Center(
-        child: Text(
-          'Xodimlar topilmadi',
-          style: context.textTheme.bodyMedium!.copyWith(
-            color: cBlack,
-            fontSize: 14.sp,
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: minScrollExtent,
+            child: Center(
+              child: Text(
+                'Xodimlar topilmadi',
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: cBlack,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       );
     }
 
     return ListView.builder(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: data.items.length + (data.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= data.items.length) {
@@ -370,7 +428,12 @@ class _EmployeesBody extends StatelessWidget {
               ],
             ),
             trail: Icon(Icons.chevron_right, color: cGrey, size: 22.sp),
-            onTap: () => onTap(employee.id, employee.fullName),
+            onTap: () => onTap(
+              employee.id,
+              employee.fullName,
+              employee.faceEnrollmentId,
+              employee.faceEnrollmentFileRelativeUrl,
+            ),
           ),
         );
       },
