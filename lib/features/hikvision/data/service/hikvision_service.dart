@@ -9,6 +9,7 @@ import 'package:http/io_client.dart';
 
 import '../../domain/entity/hikvision_user.dart';
 import '../../domain/entity/hikvision_user_search_result.dart';
+import 'hikvision_error.dart';
 
 class HikvisionService {
   String baseUrl;
@@ -51,7 +52,6 @@ class HikvisionService {
   }
 
   Future<HikvisionUser?> getUserByEmployeeNo(String employeeNo) async {
-
     final emp = normalizeEmployeeNoForIsapi(employeeNo);
     if (emp.isEmpty) {
       throw Exception('employeeNo bo‘sh — Hikvision qidiruv yuborilmaydi.');
@@ -61,11 +61,13 @@ class HikvisionService {
       '$baseUrl/ISAPI/AccessControl/UserInfo/Search?format=json',
     );
 
-    final body = jsonEncode(_userInfoSearchBody(
-      searchResultPosition: 0,
-      maxResults: 1,
-      employeeNos: [emp],
-    ));
+    final body = jsonEncode(
+      _userInfoSearchBody(
+        searchResultPosition: 0,
+        maxResults: 1,
+        employeeNos: [emp],
+      ),
+    );
 
     final jsonMap = await postJsonWithDigest(uri, body);
     final search = jsonMap['UserInfoSearch'];
@@ -94,10 +96,12 @@ class HikvisionService {
       '$baseUrl/ISAPI/AccessControl/UserInfo/Search?format=json',
     );
 
-    final body = jsonEncode(_userInfoSearchBody(
-      searchResultPosition: searchResultPosition,
-      maxResults: maxResults,
-    ));
+    final body = jsonEncode(
+      _userInfoSearchBody(
+        searchResultPosition: searchResultPosition,
+        maxResults: maxResults,
+      ),
+    );
 
     final jsonMap = await postJsonWithDigest(uri, body);
     final search = jsonMap['UserInfoSearch'];
@@ -141,22 +145,28 @@ class HikvisionService {
     });
 
     final jsonMap = await postJsonWithDigest(uri, body);
+    return extractFaceUrlFromSearchResponse(jsonMap);
+  }
 
-    final matchList = jsonMap['MatchList'];
-    if (matchList is List && matchList.isNotEmpty) {
-      final first = matchList.first;
-      if (first is Map) return first['faceURL']?.toString();
-    }
+  static String? extractFaceUrlFromSearchResponse(
+    Map<String, dynamic> jsonMap,
+  ) {
+    final matchLists = <Object?>[
+      jsonMap['MatchList'],
+      (jsonMap['FaceInfoSearch'] as Map?)?['MatchList'],
+      (jsonMap['FDSearchResult'] as Map?)?['MatchList'],
+    ];
 
-    final faceInfoSearch = jsonMap['FaceInfoSearch'];
-    if (faceInfoSearch is Map) {
-      final ml = faceInfoSearch['MatchList'];
-      if (ml is List && ml.isNotEmpty) {
-        final first = ml.first;
-        if (first is Map) return first['faceURL']?.toString();
+    for (final rawList in matchLists) {
+      if (rawList is! List || rawList.isEmpty) continue;
+      for (final item in rawList) {
+        if (item is! Map) continue;
+        for (final key in const ['picURL', 'faceURL', 'faceDataUrl']) {
+          final value = item[key]?.toString().trim() ?? '';
+          if (value.isNotEmpty) return value;
+        }
       }
     }
-
     return null;
   }
 
@@ -167,7 +177,10 @@ class HikvisionService {
       headers: {'Accept': '*/*'},
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Hikvision GET ${response.statusCode}: ${response.body}');
+      throw HikvisionDeviceException.fromResponse(
+        response,
+        operation: 'rasmni yuklash',
+      );
     }
     return response.bodyBytes;
   }
@@ -189,7 +202,10 @@ class HikvisionService {
       body: body,
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Hikvision ${response.statusCode}: ${response.body}');
+      throw HikvisionDeviceException.fromResponse(
+        response,
+        operation: 'rasmga olish',
+      );
     }
     return _parseFaceDataUrl(response.body);
   }
@@ -198,7 +214,10 @@ class HikvisionService {
     final reg = RegExp(r'<faceDataUrl>([^<]+)</faceDataUrl>');
     final match = reg.firstMatch(xml);
     if (match == null) {
-      throw Exception('faceDataUrl topilmadi: $xml');
+      throw const HikvisionDeviceException(
+        message:
+            'Face ID qurilmasi rasm manzilini qaytarmadi. Qayta urinib ko‘ring.',
+      );
     }
     return match.group(1)!;
   }
@@ -206,6 +225,7 @@ class HikvisionService {
   Future<Map<String, dynamic>> addFaceByUrl({
     required String employeeNo,
     required String faceUrl,
+    required String name,
   }) async {
     final emp = normalizeEmployeeNoForIsapi(employeeNo);
     if (emp.isEmpty) {
@@ -220,8 +240,59 @@ class HikvisionService {
       'FDID': '1',
       'FPID': emp,
       'faceURL': faceUrl,
+      'name': name.trim().isEmpty ? emp : name.trim(),
+      'bornTime': '1970-01-01+08:00',
+      'gender': 'unknown',
+      'saveFacePic': true,
     });
-    return postJsonWithDigest(uri, body);
+    return postJsonWithDigest(uri, body, operation: 'yuz rasmini qo‘shish');
+  }
+
+  Future<Map<String, dynamic>> updateFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
+    final emp = normalizeEmployeeNoForIsapi(employeeNo);
+    if (emp.isEmpty) {
+      throw const HikvisionDeviceException(
+        message: 'Tarbiyalanuvchi raqami topilmadi. Qayta urinib ko‘ring.',
+      );
+    }
+
+    final uri = Uri.parse('$baseUrl/ISAPI/Intelligent/FDLib/FDSearch').replace(
+      queryParameters: {
+        'format': 'json',
+        'FDID': '1',
+        'FPID': emp,
+        'faceLibType': 'blackFD',
+      },
+    );
+    final body = jsonEncode({
+      'faceURL': faceUrl,
+      'name': name.trim().isEmpty ? emp : name.trim(),
+      'bornTime': '1970-01-01+08:00',
+      'gender': 'unknown',
+      'saveFacePic': true,
+    });
+    return putJsonWithDigest(uri, body, operation: 'yuz rasmini yangilash');
+  }
+
+  Future<void> upsertFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
+    try {
+      await updateFaceByUrl(
+        employeeNo: employeeNo,
+        faceUrl: faceUrl,
+        name: name,
+      );
+    } on HikvisionDeviceException catch (error) {
+      if (!error.isMissingFaceRecord) rethrow;
+      await addFaceByUrl(employeeNo: employeeNo, faceUrl: faceUrl, name: name);
+    }
   }
 
   Future<Map<String, dynamic>> deleteUser(String employeeNo) async {
@@ -271,7 +342,14 @@ class HikvisionService {
     String fmt(DateTime dt) => dt.toIso8601String().split('.').first;
 
     final now = DateTime.now();
-    final customTime = DateTime(now.year, now.month, now.day, (now.hour > 0 ? now.hour - 1 : 0), now.minute, now.second);
+    final customTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      (now.hour > 0 ? now.hour - 1 : 0),
+      now.minute,
+      now.second,
+    );
     final beginTime = fmt(customTime);
     final endTime = fmt(
       DateTime(
@@ -320,7 +398,11 @@ class HikvisionService {
     await postJsonWithDigest(uri, body);
   }
 
-  Future<Map<String, dynamic>> postJsonWithDigest(Uri uri, String body) async {
+  Future<Map<String, dynamic>> postJsonWithDigest(
+    Uri uri,
+    String body, {
+    String operation = 'amal bajarish',
+  }) async {
     final response = await _sendAuthorizedRequest(
       'POST',
       uri,
@@ -331,12 +413,19 @@ class HikvisionService {
       body: body,
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Hikvision ${response.statusCode}: ${response.body}');
+      throw HikvisionDeviceException.fromResponse(
+        response,
+        operation: operation,
+      );
     }
-    return _decodeAsJson(response);
+    return _decodeAsJson(response, operation: operation);
   }
 
-  Future<Map<String, dynamic>> putJsonWithDigest(Uri uri, String body) async {
+  Future<Map<String, dynamic>> putJsonWithDigest(
+    Uri uri,
+    String body, {
+    String operation = 'amal bajarish',
+  }) async {
     final response = await _sendAuthorizedRequest(
       'PUT',
       uri,
@@ -347,9 +436,12 @@ class HikvisionService {
       body: body,
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Hikvision ${response.statusCode}: ${response.body}');
+      throw HikvisionDeviceException.fromResponse(
+        response,
+        operation: operation,
+      );
     }
-    return _decodeAsJson(response);
+    return _decodeAsJson(response, operation: operation);
   }
 
   static const Duration _connectTimeout = Duration(seconds: 20);
@@ -377,7 +469,10 @@ class HikvisionService {
 
       final authHeader = initialResponse.headers['www-authenticate'];
       if (authHeader == null || !authHeader.startsWith('Digest')) {
-        throw Exception('WWW-Authenticate Digest emas: $authHeader');
+        throw const HikvisionDeviceException(
+          message:
+              'Face ID qurilmasi bilan xavfsiz ulanishni o‘rnatib bo‘lmadi.',
+        );
       }
 
       final digest = _parseDigest(authHeader);
@@ -394,7 +489,7 @@ class HikvisionService {
       );
 
       final authorizedHeaders = <String, String>{
-        if (headers != null) ...headers,
+        ...?headers,
         'Authorization': digestHeader,
       };
 
@@ -406,16 +501,20 @@ class HikvisionService {
         body: body,
       ).timeout(_connectTimeout + _bodyTimeout);
     } on TimeoutException {
-      throw Exception(
-        "Hikvision so'rov timeout bo'ldi. URL: $uri "
-        "(telefon va kamera bir xil Wi-Fi tarmog'ida ekanini tekshiring)",
+      throw const HikvisionDeviceException(
+        message:
+            'Face ID qurilmasi javob bermadi. Telefon va qurilma bir xil Wi-Fi tarmog‘ida ekanini tekshiring.',
       );
-    } on SocketException catch (e) {
-      throw Exception(
-        'Hikvision tarmoq xatosi: ${e.message}. URL: $uri',
+    } on SocketException {
+      throw HikvisionDeviceException(
+        message:
+            'Face ID qurilmasiga ulanib bo‘lmadi. Telefon va qurilma bir xil Wi-Fi tarmog‘ida ekanini tekshiring.',
       );
-    } on http.ClientException catch (e) {
-      throw Exception('Hikvision ulanish xatosi: ${e.message}. URL: $uri');
+    } on http.ClientException {
+      throw HikvisionDeviceException(
+        message:
+            'Face ID qurilmasiga ulanib bo‘lmadi. Telefon va qurilma bir xil Wi-Fi tarmog‘ida ekanini tekshiring.',
+      );
     } finally {
       client.close();
     }
@@ -491,16 +590,33 @@ class HikvisionService {
         'response="$response"';
   }
 
-  Map<String, dynamic> _decodeAsJson(http.Response resp) {
-    final ct = resp.headers['content-type'] ?? '';
+  Map<String, dynamic> _decodeAsJson(
+    http.Response resp, {
+    required String operation,
+  }) {
     final text = resp.body;
 
+    dynamic decoded;
     try {
-      final decoded = jsonDecode(text);
-      if (decoded is Map<String, dynamic>) return decoded;
-      throw Exception('JSON Map emas: $decoded');
+      decoded = jsonDecode(text);
     } catch (_) {
-      throw Exception('JSON parse bo‘lmadi. content-type=$ct, body=$text');
+      throw HikvisionDeviceException(
+        message:
+            'Face ID qurilmasi kutilmagan javob qaytardi. Qayta urinib ko‘ring.',
+      );
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw HikvisionDeviceException(
+        message:
+            'Face ID qurilmasi kutilmagan javob qaytardi. Qayta urinib ko‘ring.',
+      );
+    }
+
+    try {
+      throw HikvisionDeviceException.fromPayload(decoded, operation: operation);
+    } on StateError {
+      return decoded;
     }
   }
 

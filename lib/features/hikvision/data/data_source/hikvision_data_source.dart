@@ -5,11 +5,23 @@ import '../service/hikvision_service.dart';
 abstract class HikvisionRemoteDataSource {
   Future<HikvisionUser?> getUserByEmployeeNo(String employeeNo);
   Future<void> createUser({required String employeeNo, required String name});
-  Future<HikvisionUserSearchResult> searchUsers({int searchResultPosition, int maxResults});
+  Future<HikvisionUserSearchResult> searchUsers({
+    int searchResultPosition,
+    int maxResults,
+  });
   Future<String?> getFaceUrlByEmployeeNo(String employeeNo);
   Future<List<int>> downloadBytesWithDigest(Uri uri);
   Future<String> captureFaceUrl();
-  Future<void> addFaceByUrl({required String employeeNo, required String faceUrl});
+  Future<void> addFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  });
+  Future<void> upsertFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  });
   Future<void> deleteUser(String employeeNo);
   Future<void> deleteUsersBatch(List<String> employeeNos);
 }
@@ -56,8 +68,29 @@ class HikvisionRemoteDataSourceImpl extends HikvisionRemoteDataSource {
   }
 
   @override
-  Future<void> addFaceByUrl({required String employeeNo, required String faceUrl}) async {
-    await _service.addFaceByUrl(employeeNo: employeeNo, faceUrl: faceUrl);
+  Future<void> addFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
+    await _service.addFaceByUrl(
+      employeeNo: employeeNo,
+      faceUrl: faceUrl,
+      name: name,
+    );
+  }
+
+  @override
+  Future<void> upsertFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
+    await _service.upsertFaceByUrl(
+      employeeNo: employeeNo,
+      faceUrl: faceUrl,
+      name: name,
+    );
   }
 
   @override
@@ -70,4 +103,3 @@ class HikvisionRemoteDataSourceImpl extends HikvisionRemoteDataSource {
     await _service.deleteUsersBatch(employeeNos);
   }
 }
-

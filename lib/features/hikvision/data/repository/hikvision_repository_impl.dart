@@ -11,7 +11,9 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   HikvisionRepositoryImpl(this._remote);
 
   @override
-  Future<Either<Failure, HikvisionUser?>> getUserByEmployeeNo(String employeeNo) async {
+  Future<Either<Failure, HikvisionUser?>> getUserByEmployeeNo(
+    String employeeNo,
+  ) async {
     try {
       final user = await _remote.getUserByEmployeeNo(employeeNo);
       return Right(user);
@@ -21,7 +23,10 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
-  Future<Either<Failure, void>> createUser({required String employeeNo, required String name}) async {
+  Future<Either<Failure, void>> createUser({
+    required String employeeNo,
+    required String name,
+  }) async {
     try {
       await _remote.createUser(employeeNo: employeeNo, name: name);
       return Right(null);
@@ -31,9 +36,15 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
-  Future<Either<Failure, HikvisionUserSearchResult>> searchUsers({int searchResultPosition = 0, int maxResults = 30}) async {
+  Future<Either<Failure, HikvisionUserSearchResult>> searchUsers({
+    int searchResultPosition = 0,
+    int maxResults = 30,
+  }) async {
     try {
-      final res = await _remote.searchUsers(searchResultPosition: searchResultPosition, maxResults: maxResults);
+      final res = await _remote.searchUsers(
+        searchResultPosition: searchResultPosition,
+        maxResults: maxResults,
+      );
       return Right(res);
     } catch (e) {
       return Left(AppFailure(errorMessage: e.toString()));
@@ -41,7 +52,9 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
-  Future<Either<Failure, String?>> getFaceUrlByEmployeeNo(String employeeNo) async {
+  Future<Either<Failure, String?>> getFaceUrlByEmployeeNo(
+    String employeeNo,
+  ) async {
     try {
       final url = await _remote.getFaceUrlByEmployeeNo(employeeNo);
       return Right(url);
@@ -71,9 +84,35 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
-  Future<Either<Failure, void>> addFaceByUrl({required String employeeNo, required String faceUrl}) async {
+  Future<Either<Failure, void>> addFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
     try {
-      await _remote.addFaceByUrl(employeeNo: employeeNo, faceUrl: faceUrl);
+      await _remote.addFaceByUrl(
+        employeeNo: employeeNo,
+        faceUrl: faceUrl,
+        name: name,
+      );
+      return Right(null);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> upsertFaceByUrl({
+    required String employeeNo,
+    required String faceUrl,
+    required String name,
+  }) async {
+    try {
+      await _remote.upsertFaceByUrl(
+        employeeNo: employeeNo,
+        faceUrl: faceUrl,
+        name: name,
+      );
       return Right(null);
     } catch (e) {
       return Left(AppFailure(errorMessage: e.toString()));
@@ -91,7 +130,9 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteUsersBatch(List<String> employeeNos) async {
+  Future<Either<Failure, void>> deleteUsersBatch(
+    List<String> employeeNos,
+  ) async {
     try {
       await _remote.deleteUsersBatch(employeeNos);
       return Right(null);

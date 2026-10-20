@@ -24,36 +24,49 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
     on<HikvisionDeleteUserPressed>(_onDeleteUserPressed);
   }
 
-  Future<void> _onStarted(HikvisionStarted event, Emitter<HikvisionState> emit) async {
+  Future<void> _onStarted(
+    HikvisionStarted event,
+    Emitter<HikvisionState> emit,
+  ) async {
     emit(const HikvisionLoading());
     final result = await _repository.getUserByEmployeeNo(event.employeeNo);
     if (result.isRight) {
       final user = result.right;
       if (user != null) {
-        final faceUrlResult = await _repository.getFaceUrlByEmployeeNo(user.employeeNo);
+        final faceUrlResult = await _repository.getFaceUrlByEmployeeNo(
+          user.employeeNo,
+        );
         if (faceUrlResult.isRight) {
           final url = faceUrlResult.right;
           if (url != null && url.isNotEmpty) {
-            final bytesResult = await _repository.downloadBytesWithDigest(Uri.parse(url));
+            final bytesResult = await _repository.downloadBytesWithDigest(
+              Uri.parse(url),
+            );
             if (bytesResult.isRight) {
               emit(HikvisionUserFound(user, photoBytes: bytesResult.right));
               return;
             }
-            emit(HikvisionUserFound(user));
-            return;
           }
         }
 
         final rel = event.faceEnrollmentFileRelativeUrl?.trim() ?? '';
         if (rel.isNotEmpty) {
           final fullUrl = resolveFaceEnrollmentImageUrl(rel);
-          final addResult = await _repository.addFaceByUrl(employeeNo: user.employeeNo, faceUrl: fullUrl);
+          final addResult = await _repository.upsertFaceByUrl(
+            employeeNo: user.employeeNo,
+            faceUrl: fullUrl,
+            name: user.name,
+          );
           if (addResult.isRight) {
-            final after = await _repository.getFaceUrlByEmployeeNo(user.employeeNo);
+            final after = await _repository.getFaceUrlByEmployeeNo(
+              user.employeeNo,
+            );
             if (after.isRight) {
               final u = after.right;
               if (u != null && u.isNotEmpty) {
-                final bytesResult = await _repository.downloadBytesWithDigest(Uri.parse(u));
+                final bytesResult = await _repository.downloadBytesWithDigest(
+                  Uri.parse(u),
+                );
                 if (bytesResult.isRight) {
                   emit(HikvisionUserFound(user, photoBytes: bytesResult.right));
                   return;
@@ -65,7 +78,9 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
 
         emit(HikvisionUserFound(user));
       } else {
-        emit(HikvisionUserNotFound(employeeNo: event.employeeNo, name: event.name));
+        emit(
+          HikvisionUserNotFound(employeeNo: event.employeeNo, name: event.name),
+        );
       }
     } else {
       final failure = result.left;
@@ -73,11 +88,21 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
     }
   }
 
-  Future<void> _onCreateUserPressed(HikvisionCreateUserPressed event, Emitter<HikvisionState> emit) async {
+  Future<void> _onCreateUserPressed(
+    HikvisionCreateUserPressed event,
+    Emitter<HikvisionState> emit,
+  ) async {
     emit(const HikvisionActionInProgress());
-    final result = await _repository.createUser(employeeNo: event.employeeNo, name: event.name);
+    final result = await _repository.createUser(
+      employeeNo: event.employeeNo,
+      name: event.name,
+    );
     if (result.isRight) {
-      emit(const HikvisionSuccess('Foydalanuvchi Hikvision ga muvaffaqiyatli qo‘shildi'));
+      emit(
+        const HikvisionSuccess(
+          'Foydalanuvchi Hikvision ga muvaffaqiyatli qo‘shildi',
+        ),
+      );
       add(HikvisionStarted(employeeNo: event.employeeNo, name: event.name));
     } else {
       final Failure failure = result.left;
@@ -85,7 +110,10 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
     }
   }
 
-  Future<void> _onAddPhotoPressed(HikvisionAddPhotoPressed event, Emitter<HikvisionState> emit) async {
+  Future<void> _onAddPhotoPressed(
+    HikvisionAddPhotoPressed event,
+    Emitter<HikvisionState> emit,
+  ) async {
     emit(const HikvisionActionInProgress());
 
     final captureResult = await _repository.captureFaceUrl();
@@ -111,7 +139,11 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
         final bytesResult = await _repository.downloadBytesWithDigest(uri);
         if (bytesResult.isLeft) {
           final f = bytesResult.left;
-          emit(HikvisionFailure('Vaqtinchalik yuz rasmini yuklab bo‘lmadi: ${f.errorMessage ?? f}'));
+          emit(
+            HikvisionFailure(
+              'Vaqtinchalik yuz rasmini yuklab bo‘lmadi: ${f.errorMessage ?? f}',
+            ),
+          );
           add(HikvisionStarted(employeeNo: event.lookupEmployeeNo, name: ''));
           return;
         }
@@ -123,7 +155,11 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
       }
     }
 
-    final addResult = await _repository.addFaceByUrl(employeeNo: event.deviceEmployeeNo, faceUrl: faceUrl);
+    final addResult = await _repository.upsertFaceByUrl(
+      employeeNo: event.deviceEmployeeNo,
+      faceUrl: faceUrl,
+      name: event.name,
+    );
     if (addResult.isLeft) {
       final f = addResult.left;
       emit(HikvisionFailure(f.errorMessage ?? f.toString()));
@@ -132,10 +168,16 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
 
     if (syncBackend && faceBytesForBackend != null) {
       try {
-        final uploadResult = await _faceEnrollment.uploadFaceImageBytes(faceBytesForBackend);
+        final uploadResult = await _faceEnrollment.uploadFaceImageBytes(
+          faceBytesForBackend,
+        );
         if (uploadResult.isLeft) {
           final f = uploadResult.left;
-          emit(HikvisionFailure('Qurilmaga rasm qo‘shildi, POST /api/file xatosi: ${f.errorMessage ?? f}'));
+          emit(
+            HikvisionFailure(
+              'Qurilmaga rasm qo‘shildi, POST /api/file xatosi: ${f.errorMessage ?? f}',
+            ),
+          );
           add(HikvisionStarted(employeeNo: event.lookupEmployeeNo, name: ''));
           return;
         }
@@ -159,7 +201,11 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
           return;
         }
       } catch (e) {
-        emit(HikvisionFailure('Qurilmaga rasm qo‘shildi, backend sinxron xatosi: $e'));
+        emit(
+          HikvisionFailure(
+            'Qurilmaga rasm qo‘shildi, backend sinxron xatosi: $e',
+          ),
+        );
         add(HikvisionStarted(employeeNo: event.lookupEmployeeNo, name: ''));
         return;
       }
@@ -184,7 +230,10 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
     return Uri.parse(base).resolve(t);
   }
 
-  Future<void> _onDeleteUserPressed(HikvisionDeleteUserPressed event, Emitter<HikvisionState> emit) async {
+  Future<void> _onDeleteUserPressed(
+    HikvisionDeleteUserPressed event,
+    Emitter<HikvisionState> emit,
+  ) async {
     emit(const HikvisionActionInProgress());
 
     final result = await _repository.deleteUser(event.employeeNo);
@@ -195,7 +244,9 @@ class HikvisionBloc extends Bloc<HikvisionEvent, HikvisionState> {
     }
     final faceEnrollmentId = event.faceEnrollmentId?.trim() ?? '';
     if (faceEnrollmentId.isNotEmpty) {
-      final deleteEnrollmentResult = await _faceEnrollment.deleteFaceEnrollment(faceEnrollmentId);
+      final deleteEnrollmentResult = await _faceEnrollment.deleteFaceEnrollment(
+        faceEnrollmentId,
+      );
       if (deleteEnrollmentResult.isLeft) {
         final f = deleteEnrollmentResult.left;
         emit(

@@ -7,7 +7,7 @@ AppBar organizationAppBar(BuildContext context, VoidCallback onClickAccount) {
   return AppBar(
     centerTitle: true,
     title: Text(
-      "MSmart FaceId",
+      "MSmart Control",
       style: context.textTheme.bodyMedium!.copyWith(color: cBlack),
     ),
     actions: [

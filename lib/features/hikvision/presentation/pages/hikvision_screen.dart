@@ -75,21 +75,31 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
         ),
         title: Text(
           'Hikvision foydalanuvchi',
-          style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500),
+          style: context.textTheme.bodyMedium!.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         centerTitle: true,
       ),
       body: BlocConsumer<HikvisionBloc, HikvisionState>(
         listener: (context, state) {
           if (state is HikvisionFailure) {
-            context.showPopUp(status: PopUpStatus.error, message: state.message);
+            context.showPopUp(
+              status: PopUpStatus.error,
+              message: state.message,
+            );
           } else if (state is HikvisionSuccess) {
-            context.showPopUp(status: PopUpStatus.success, message: state.message);
+            context.showPopUp(
+              status: PopUpStatus.success,
+              message: state.message,
+            );
           }
         },
         builder: (context, state) {
           if (state is HikvisionLoading || state is HikvisionActionInProgress) {
-            return Center(child: CircularProgressIndicator(color: context.onPrimaryColor));
+            return Center(
+              child: CircularProgressIndicator(color: context.onPrimaryColor),
+            );
           }
 
           if (state is HikvisionUserFound) {
@@ -110,7 +120,10 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
           }
 
           if (state is HikvisionUserNotFound) {
-            return _UserNotFoundView(employeeNo: state.employeeNo, name: state.name);
+            return _UserNotFoundView(
+              employeeNo: state.employeeNo,
+              name: state.name,
+            );
           }
 
           if (state is HikvisionFailure) {
@@ -156,7 +169,10 @@ class _UserInfoView extends StatelessWidget {
         children: [
           Text(
             'Foydalanuvchi topildi',
-            style: context.textTheme.bodyLarge!.copyWith(fontSize: 18.sp, fontWeight: FontWeight.w600),
+            style: context.textTheme.bodyLarge!.copyWith(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           SizedBox(height: 16.h),
           Center(
@@ -166,14 +182,19 @@ class _UserInfoView extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.r),
                 child: photoBytes != null
-                    ? Image.memory(Uint8List.fromList(photoBytes!), fit: BoxFit.cover)
+                    ? Image.memory(
+                        Uint8List.fromList(photoBytes!),
+                        fit: BoxFit.cover,
+                      )
                     : Container(
                         color: cBlack.withValues(alpha: .1),
                         child: Center(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: cBlue,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
                             ),
                             onPressed: () {
                               final orgOk = organizationId.trim().isNotEmpty;
@@ -182,6 +203,7 @@ class _UserInfoView extends StatelessWidget {
                                 HikvisionAddPhotoPressed(
                                   deviceEmployeeNo: user.employeeNo,
                                   lookupEmployeeNo: lookupEmployeeNo,
+                                  name: user.name,
                                   /*studentId: orgOk && devOk ? lookupEmployeeNo : null,*/
                                   studentId: studentId,
                                   staffId: staffId,
@@ -192,7 +214,10 @@ class _UserInfoView extends StatelessWidget {
                             },
                             child: Text(
                               'Rasm qo‘shish',
-                              style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16.sp),
+                              style: context.textTheme.bodyMedium!.copyWith(
+                                color: cWhite,
+                                fontSize: 16.sp,
+                              ),
                             ),
                           ),
                         ),
@@ -219,25 +244,37 @@ class _UserInfoView extends StatelessWidget {
                   builder: (_) => AlertDialog(
                     title: Text(
                       'Foydalanuvchini o‘chirish',
-                      style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 18.sp),
+                      style: context.textTheme.bodyMedium!.copyWith(
+                        color: context.onPrimaryColor,
+                        fontSize: 18.sp,
+                      ),
                     ),
                     content: Text(
                       'Foydalanuvchini o‘chirishni hohlaysizmi?',
-                      style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
+                      style: context.textTheme.bodyMedium!.copyWith(
+                        color: context.onPrimaryColor,
+                        fontSize: 14.sp,
+                      ),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
                         child: Text(
                           'Bekor qilish',
-                          style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
+                          style: context.textTheme.bodyMedium!.copyWith(
+                            color: context.onPrimaryColor,
+                            fontSize: 14.sp,
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         child: Text(
                           'O‘chirish',
-                          style: context.textTheme.bodyMedium!.copyWith(color: cRed, fontSize: 14.sp),
+                          style: context.textTheme.bodyMedium!.copyWith(
+                            color: cRed,
+                            fontSize: 14.sp,
+                          ),
                         ),
                       ),
                     ],
@@ -257,7 +294,7 @@ class _UserInfoView extends StatelessWidget {
               child: const Text('O‘chirish'),
             ),
           ),
-          SizedBox(height: 24.h,),
+          SizedBox(height: 24.h),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -268,7 +305,10 @@ class _UserInfoView extends StatelessWidget {
               ),
               child: Text(
                 "Orqaga",
-                style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: context.onPrimaryColor,
+                  fontSize: 14.sp,
+                ),
               ),
             ),
           ),
@@ -291,7 +331,11 @@ class _UserNotFoundView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Foydalanuvchi Hikvision da topilmadi.', textAlign: TextAlign.center, style: context.textTheme.bodyMedium),
+          Text(
+            'Foydalanuvchi Hikvision da topilmadi.',
+            textAlign: TextAlign.center,
+            style: context.textTheme.bodyMedium,
+          ),
           SizedBox(height: 8.h),
           Text(
             'Foydalanuvchini Hikvision ga qo‘shishni hohlaysizmi?',
@@ -304,14 +348,24 @@ class _UserNotFoundView extends StatelessWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: cBlue,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
               ),
               onPressed: () {
-                context.read<HikvisionBloc>().add(HikvisionCreateUserPressed(employeeNo: employeeNo, name: name));
+                context.read<HikvisionBloc>().add(
+                  HikvisionCreateUserPressed(
+                    employeeNo: employeeNo,
+                    name: name,
+                  ),
+                );
               },
               child: Text(
                 'Qo‘shish',
-                style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16.sp),
+                style: context.textTheme.bodyMedium!.copyWith(
+                  color: cWhite,
+                  fontSize: 16.sp,
+                ),
               ),
             ),
           ),
@@ -335,9 +389,17 @@ class _InfoRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text(label, style: context.textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w500)),
+            child: Text(
+              label,
+              style: context.textTheme.bodyMedium!.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          Expanded(flex: 3, child: Text(value, style: context.textTheme.bodyMedium)),
+          Expanded(
+            flex: 3,
+            child: Text(value, style: context.textTheme.bodyMedium),
+          ),
         ],
       ),
     );
