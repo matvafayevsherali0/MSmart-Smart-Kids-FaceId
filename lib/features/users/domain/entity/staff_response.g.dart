@@ -43,6 +43,7 @@ StaffDataItemDto _$StaffDataItemDtoFromJson(Map<String, dynamic> json) =>
       createdAt: json['createdAt'] as String? ?? "",
       updatedAt: json['updatedAt'] as String? ?? "",
       isDeleted: json['isDeleted'] as bool? ?? false,
+      faceEnrollment: json['faceEnrollment'],
     );
 
 StaffDataItemClassGroupDto _$StaffDataItemClassGroupDtoFromJson(

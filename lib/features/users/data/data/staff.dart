@@ -17,9 +17,22 @@ class StaffItem extends Equatable {
   final String fullName;
   final String organizationId;
   final bool isActive;
+  final String faceImageUrl;
 
-  const StaffItem({this.id = "", this.fullName = "", this.organizationId = "", this.isActive = false});
+  const StaffItem({
+    this.id = "",
+    this.fullName = "",
+    this.organizationId = "",
+    this.isActive = false,
+    this.faceImageUrl = "",
+  });
 
   @override
-  List<Object?> get props => [id, fullName, organizationId, isActive];
+  List<Object?> get props => [
+    id,
+    fullName,
+    organizationId,
+    isActive,
+    faceImageUrl,
+  ];
 }

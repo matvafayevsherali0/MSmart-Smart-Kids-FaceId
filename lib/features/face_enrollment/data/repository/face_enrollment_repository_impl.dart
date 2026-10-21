@@ -9,6 +9,18 @@ class FaceEnrollmentRepositoryImpl implements FaceEnrollmentRepository {
   FaceEnrollmentRepositoryImpl(this._remote);
 
   @override
+  Future<Either<Failure, List<int>>> downloadFaceImageBytes(
+    String relativeOrAbsoluteUrl,
+  ) async {
+    try {
+      final bytes = await _remote.downloadFaceImageBytes(relativeOrAbsoluteUrl);
+      return Right(bytes);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> uploadFaceImageBytes(List<int> bytes) async {
     try {
       final id = await _remote.uploadFaceImage(bytes);
@@ -19,7 +31,7 @@ class FaceEnrollmentRepositoryImpl implements FaceEnrollmentRepository {
   }
 
   @override
-  Future<Either<Failure, void>> enrollFromDevice({
+  Future<Either<Failure, String>> enrollFromDevice({
     required String? studentId,
     required String? staffId,
     required String faceImageId,
@@ -27,12 +39,63 @@ class FaceEnrollmentRepositoryImpl implements FaceEnrollmentRepository {
     required String deviceId,
   }) async {
     try {
-      await _remote.enrollFromDevice(
+      final id = await _remote.enrollFromDevice(
         studentId: studentId,
         staffId: staffId,
         faceImageId: faceImageId,
         organizationId: organizationId,
         deviceId: deviceId,
+      );
+      return Right(id);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> findFaceEnrollmentId({
+    required String ownerType,
+    required String ownerId,
+    required String organizationId,
+  }) async {
+    try {
+      final id = await _remote.findFaceEnrollmentId(
+        ownerType: ownerType,
+        ownerId: ownerId,
+        organizationId: organizationId,
+      );
+      return Right(id);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateFaceEnrollment({
+    required String id,
+    required String faceImageId,
+  }) async {
+    try {
+      await _remote.updateFaceEnrollment(id: id, faceImageId: faceImageId);
+      return Right(null);
+    } catch (e) {
+      return Left(AppFailure(errorMessage: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateDeviceSync({
+    required String faceEnrollmentId,
+    required String deviceId,
+    required bool isSynced,
+    String? errorMessage,
+  }) async {
+    try {
+      await _remote.updateDeviceSync(
+        faceEnrollmentId: faceEnrollmentId,
+        deviceId: deviceId,
+        isSynced: isSynced,
+        errorMessage: errorMessage,
       );
       return Right(null);
     } catch (e) {

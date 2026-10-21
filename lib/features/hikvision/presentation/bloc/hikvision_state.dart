@@ -19,11 +19,12 @@ class HikvisionLoading extends HikvisionState {
 class HikvisionUserFound extends HikvisionState {
   final HikvisionUser user;
   final List<int>? photoBytes;
+  final String? faceEnrollmentId;
 
-  const HikvisionUserFound(this.user, {this.photoBytes});
+  const HikvisionUserFound(this.user, {this.photoBytes, this.faceEnrollmentId});
 
   @override
-  List<Object?> get props => [user, photoBytes];
+  List<Object?> get props => [user, photoBytes, faceEnrollmentId];
 }
 
 class HikvisionUserNotFound extends HikvisionState {

@@ -60,6 +60,10 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
         employeeNo: widget.employeeNo,
         name: widget.name,
         faceEnrollmentFileRelativeUrl: widget.faceEnrollmentFileRelativeUrl,
+        faceEnrollmentId: widget.faceEnrollmentId,
+        studentId: widget.studentId,
+        staffId: widget.staffId,
+        organizationId: widget.organizationId,
       ),
     );
   }
@@ -71,7 +75,7 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
         automaticallyImplyLeading: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.onPrimaryColor),
-          onPressed: () => context.pop(),
+          onPressed: () => context.pop(true),
         ),
         title: Text(
           'Hikvision foydalanuvchi',
@@ -111,7 +115,7 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
               deviceId: widget.deviceId,
               studentId: widget.studentId,
               staffId: widget.staffId,
-              faceEnrollmentId: widget.faceEnrollmentId,
+              faceEnrollmentId: state.faceEnrollmentId,
               onDeleteSuccess: () {
                 if (!mounted) return;
                 context.pop();
@@ -127,11 +131,61 @@ class _HikvisionScreenState extends State<HikvisionScreen> {
           }
 
           if (state is HikvisionFailure) {
-            return Center(child: Text(state.message));
+            return HikvisionFailureView(
+              message: state.message,
+              onRetry: () => context.pop(true),
+            );
           }
 
           return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+}
+
+class HikvisionFailureView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const HikvisionFailureView({
+    super.key,
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: context.colorScheme.error,
+                size: 42,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Qayta urinib ko‘rish'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -199,6 +253,13 @@ class _UserInfoView extends StatelessWidget {
                             onPressed: () {
                               final orgOk = organizationId.trim().isNotEmpty;
                               final devOk = deviceId.trim().isNotEmpty;
+                              debugPrint(
+                                '[Hikvision] Rasm qo‘shish tugmasi bosildi: '
+                                'employeeNo=$lookupEmployeeNo, '
+                                'deviceEmployeeNo=${user.employeeNo}, '
+                                'organizationId=$organizationId, '
+                                'deviceId=$deviceId',
+                              );
                               context.read<HikvisionBloc>().add(
                                 HikvisionAddPhotoPressed(
                                   deviceEmployeeNo: user.employeeNo,
@@ -209,6 +270,7 @@ class _UserInfoView extends StatelessWidget {
                                   staffId: staffId,
                                   organizationId: orgOk ? organizationId : null,
                                   deviceId: devOk ? deviceId : null,
+                                  faceEnrollmentId: faceEnrollmentId,
                                 ),
                               );
                             },
@@ -287,6 +349,7 @@ class _UserInfoView extends StatelessWidget {
                       employeeNo: user.employeeNo,
                       onSuccess: onDeleteSuccess,
                       faceEnrollmentId: faceEnrollmentId,
+                      deviceId: deviceId,
                     ),
                   );
                 }
@@ -298,7 +361,7 @@ class _UserInfoView extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => context.pop(),
+              onPressed: () => context.pop(true),
               style: OutlinedButton.styleFrom(
                 foregroundColor: cWhite,
                 side: BorderSide(color: context.onPrimaryColor),

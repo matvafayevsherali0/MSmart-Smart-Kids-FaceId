@@ -84,6 +84,33 @@ class HikvisionRepositoryImpl extends HikvisionRepository {
   }
 
   @override
+  Future<Either<Failure, List<int>>> captureFaceBytes() async {
+    try {
+      return Right(await _remote.captureFaceBytes());
+    } catch (error) {
+      return Left(AppFailure(errorMessage: error.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> upsertFaceByBytes({
+    required String employeeNo,
+    required List<int> imageBytes,
+    required String name,
+  }) async {
+    try {
+      await _remote.upsertFaceByBytes(
+        employeeNo: employeeNo,
+        imageBytes: imageBytes,
+        name: name,
+      );
+      return Right(null);
+    } catch (error) {
+      return Left(AppFailure(errorMessage: error.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> addFaceByUrl({
     required String employeeNo,
     required String faceUrl,

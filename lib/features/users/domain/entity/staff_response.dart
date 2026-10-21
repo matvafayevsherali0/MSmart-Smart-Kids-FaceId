@@ -12,7 +12,8 @@ class StaffResponse extends Equatable {
 
   const StaffResponse({this.success = false, this.data = const StaffDataDto()});
 
-  factory StaffResponse.fromJson(Map<String, dynamic> json) => _$StaffResponseFromJson(json);
+  factory StaffResponse.fromJson(Map<String, dynamic> json) =>
+      _$StaffResponseFromJson(json);
 
   @override
   List<Object?> get props => [success, data];
@@ -25,7 +26,8 @@ class StaffDataDto extends Equatable {
 
   const StaffDataDto({this.items = const [], this.meta = const MetaResponse()});
 
-  factory StaffDataDto.fromJson(Map<String, dynamic> json) => _$StaffDataDtoFromJson(json);
+  factory StaffDataDto.fromJson(Map<String, dynamic> json) =>
+      _$StaffDataDtoFromJson(json);
 
   @override
   List<Object?> get props => [items, meta];
@@ -45,6 +47,7 @@ class StaffDataItemDto extends Equatable {
   final String createdAt;
   final String updatedAt;
   final bool isDeleted;
+  final Object? faceEnrollment;
 
   const StaffDataItemDto({
     this.id = "",
@@ -59,26 +62,28 @@ class StaffDataItemDto extends Equatable {
     this.createdAt = "",
     this.updatedAt = "",
     this.isDeleted = false,
+    this.faceEnrollment,
   });
 
-  factory StaffDataItemDto.fromJson(Map<String, dynamic> json) => _$StaffDataItemDtoFromJson(json);
+  factory StaffDataItemDto.fromJson(Map<String, dynamic> json) =>
+      _$StaffDataItemDtoFromJson(json);
 
   @override
-  List<Object?> get props =>
-      [
-        id,
-        fullname,
-        birthday,
-        address,
-        classGroupId,
-        classGroup,
-        organizationId,
-        isActive,
-        enrolledAt,
-        createdAt,
-        updatedAt,
-        isDeleted,
-      ];
+  List<Object?> get props => [
+    id,
+    fullname,
+    birthday,
+    address,
+    classGroupId,
+    classGroup,
+    organizationId,
+    isActive,
+    enrolledAt,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    faceEnrollment,
+  ];
 }
 
 @JsonSerializable(createToJson: false)
@@ -105,19 +110,19 @@ class StaffDataItemClassGroupDto extends Equatable {
     this.isDeleted = false,
   });
 
-  factory StaffDataItemClassGroupDto.fromJson(Map<String, dynamic> json) => _$StaffDataItemClassGroupDtoFromJson(json);
+  factory StaffDataItemClassGroupDto.fromJson(Map<String, dynamic> json) =>
+      _$StaffDataItemClassGroupDtoFromJson(json);
 
   @override
-  List<Object?> get props =>
-      [
-        id,
-        name,
-        section,
-        curatorId,
-        studentCount,
-        organizationId,
-        createdAt,
-        updatedAt,
-        isDeleted,
-      ];
+  List<Object?> get props => [
+    id,
+    name,
+    section,
+    curatorId,
+    studentCount,
+    organizationId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+  ];
 }

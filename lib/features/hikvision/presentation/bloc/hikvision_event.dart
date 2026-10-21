@@ -14,15 +14,31 @@ class HikvisionStarted extends HikvisionEvent {
 
   /// Backend `faceEnrollment.file.url` (nisbiy yoki to‘liq); Hikvisionda yuz bo‘lmasa shu yerdan qo‘shiladi.
   final String? faceEnrollmentFileRelativeUrl;
+  final String? faceEnrollmentId;
+  final String? studentId;
+  final String? staffId;
+  final String? organizationId;
 
   const HikvisionStarted({
     required this.employeeNo,
     required this.name,
     this.faceEnrollmentFileRelativeUrl,
+    this.faceEnrollmentId,
+    this.studentId,
+    this.staffId,
+    this.organizationId,
   });
 
   @override
-  List<Object?> get props => [employeeNo, name, faceEnrollmentFileRelativeUrl];
+  List<Object?> get props => [
+    employeeNo,
+    name,
+    faceEnrollmentFileRelativeUrl,
+    faceEnrollmentId,
+    studentId,
+    staffId,
+    organizationId,
+  ];
 }
 
 class HikvisionCreateUserPressed extends HikvisionEvent {
@@ -46,6 +62,7 @@ class HikvisionAddPhotoPressed extends HikvisionEvent {
   final String? staffId;
   final String? organizationId;
   final String? deviceId;
+  final String? faceEnrollmentId;
 
   const HikvisionAddPhotoPressed({
     required this.deviceEmployeeNo,
@@ -55,6 +72,7 @@ class HikvisionAddPhotoPressed extends HikvisionEvent {
     this.staffId,
     this.organizationId,
     this.deviceId,
+    this.faceEnrollmentId,
   });
 
   @override
@@ -66,6 +84,7 @@ class HikvisionAddPhotoPressed extends HikvisionEvent {
     staffId,
     organizationId,
     deviceId,
+    faceEnrollmentId,
   ];
 }
 
@@ -73,13 +92,15 @@ class HikvisionDeleteUserPressed extends HikvisionEvent {
   final String employeeNo;
   final VoidCallback onSuccess;
   final String? faceEnrollmentId;
+  final String deviceId;
 
   const HikvisionDeleteUserPressed({
     required this.employeeNo,
     required this.onSuccess,
     this.faceEnrollmentId,
+    this.deviceId = '',
   });
 
   @override
-  List<Object?> get props => [employeeNo, faceEnrollmentId];
+  List<Object?> get props => [employeeNo, faceEnrollmentId, deviceId];
 }

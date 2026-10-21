@@ -9,6 +9,13 @@ import '../entity/staff_employee_ids_response.dart';
 import '../entity/staff_response.dart';
 
 class UsersMapper {
+  String _extractFaceImageUrl(Object? raw) {
+    if (raw is! Map) return '';
+    final file = raw['file'];
+    if (file is! Map) return '';
+    return file['url']?.toString().trim() ?? '';
+  }
+
   Users mapGetUsersResponseToUsers(GetUsersResponse response) {
     final meta = response.data != null
         ? response.data!.meta != null
@@ -40,7 +47,15 @@ class UsersMapper {
   Staff mapStaffResponseToStaff(StaffResponse res) {
     return Staff(
       items: res.data.items
-          .map((e) => StaffItem(id: e.id, fullName: e.fullname, organizationId: e.organizationId, isActive: e.isActive))
+          .map(
+            (e) => StaffItem(
+              id: e.id,
+              fullName: e.fullname,
+              organizationId: e.organizationId,
+              isActive: e.isActive,
+              faceImageUrl: _extractFaceImageUrl(e.faceEnrollment),
+            ),
+          )
           .toList(),
       meta: MetaInfo(
         total: res.data.meta.total ?? 0,
@@ -51,7 +66,9 @@ class UsersMapper {
     );
   }
 
-  List<String> mapStaffEmployeeIdsResponseToIdList(StaffEmployeeIdsResponse res) {
+  List<String> mapStaffEmployeeIdsResponseToIdList(
+    StaffEmployeeIdsResponse res,
+  ) {
     return res.data.map((e) => e.id).where((id) => id.isNotEmpty).toList();
   }
 
@@ -65,6 +82,7 @@ class UsersMapper {
               phone: e.phoneNumber,
               organizationId: e.organizationId,
               isActive: e.isActive,
+              faceImageUrl: _extractFaceImageUrl(e.faceEnrollment),
             ),
           )
           .toList(),

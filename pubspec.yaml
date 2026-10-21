@@ -50,6 +50,8 @@ dependencies:
   keyboard_dismisser: ^3.0.0
   equatable: ^2.0.8
   http: ^1.6.0
+  mime: ^2.0.0
+  image: ^4.5.4
   crypto: ^3.0.7
   json_annotation: ^4.11.0
   local_auth: ^3.0.1

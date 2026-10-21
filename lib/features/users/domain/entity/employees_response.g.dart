@@ -41,4 +41,5 @@ EmployeesDataItemDto _$EmployeesDataItemDtoFromJson(
   isActive: json['isActive'] as bool? ?? false,
   createdAt: json['createdAt'] as String? ?? "",
   updatedAt: json['updatedAt'] as String? ?? "",
+  faceEnrollment: json['faceEnrollment'],
 );

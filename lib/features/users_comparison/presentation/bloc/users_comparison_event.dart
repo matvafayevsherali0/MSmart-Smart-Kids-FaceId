@@ -30,6 +30,10 @@ class DataSynchronizationUsersComparisonEvent extends UsersComparisonEvent {
   List<Object?> get props => [backendIds, hikvisionIds];
 }
 
+class ApplyUsersComparisonSynchronizationEvent extends UsersComparisonEvent {
+  const ApplyUsersComparisonSynchronizationEvent();
+}
+
 class DeleteUsersComparisonEvent extends UsersComparisonEvent {
   final List<String> employeeNos;
 

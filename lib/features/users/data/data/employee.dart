@@ -6,10 +6,7 @@ class Employee extends Equatable {
   final List<EmployeeItem> items;
   final MetaInfo meta;
 
-  const Employee({
-    this.items = const [],
-    this.meta = const MetaInfo()
-  });
+  const Employee({this.items = const [], this.meta = const MetaInfo()});
 
   @override
   List<Object?> get props => [items, meta];
@@ -21,6 +18,7 @@ class EmployeeItem extends Equatable {
   final String phone;
   final String organizationId;
   final bool isActive;
+  final String faceImageUrl;
 
   const EmployeeItem({
     this.id = "",
@@ -28,8 +26,16 @@ class EmployeeItem extends Equatable {
     this.phone = "",
     this.organizationId = "",
     this.isActive = false,
+    this.faceImageUrl = "",
   });
 
   @override
-  List<Object?> get props => [id, fullName, phone, organizationId, isActive];
+  List<Object?> get props => [
+    id,
+    fullName,
+    phone,
+    organizationId,
+    isActive,
+    faceImageUrl,
+  ];
 }

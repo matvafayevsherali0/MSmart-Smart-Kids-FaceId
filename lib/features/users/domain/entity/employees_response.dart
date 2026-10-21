@@ -10,9 +10,13 @@ class EmployeesResponse extends Equatable {
   final bool success;
   final EmployeesDataDto data;
 
-  const EmployeesResponse({this.success = false, this.data = const EmployeesDataDto()});
+  const EmployeesResponse({
+    this.success = false,
+    this.data = const EmployeesDataDto(),
+  });
 
-  factory EmployeesResponse.fromJson(Map<String, dynamic> json) => _$EmployeesResponseFromJson(json);
+  factory EmployeesResponse.fromJson(Map<String, dynamic> json) =>
+      _$EmployeesResponseFromJson(json);
 
   @override
   List<Object?> get props => [success, data];
@@ -23,9 +27,13 @@ class EmployeesDataDto extends Equatable {
   final List<EmployeesDataItemDto> items;
   final MetaResponse meta;
 
-  const EmployeesDataDto({this.items = const [], this.meta = const MetaResponse()});
+  const EmployeesDataDto({
+    this.items = const [],
+    this.meta = const MetaResponse(),
+  });
 
-  factory EmployeesDataDto.fromJson(Map<String, dynamic> json) => _$EmployeesDataDtoFromJson(json);
+  factory EmployeesDataDto.fromJson(Map<String, dynamic> json) =>
+      _$EmployeesDataDtoFromJson(json);
 
   @override
   List<Object?> get props => [items, meta];
@@ -43,6 +51,7 @@ class EmployeesDataItemDto extends Equatable {
   final bool isActive;
   final String createdAt;
   final String updatedAt;
+  final Object? faceEnrollment;
 
   const EmployeesDataItemDto({
     this.id = "",
@@ -55,9 +64,11 @@ class EmployeesDataItemDto extends Equatable {
     this.isActive = false,
     this.createdAt = "",
     this.updatedAt = "",
+    this.faceEnrollment,
   });
 
-  factory EmployeesDataItemDto.fromJson(Map<String, dynamic> json) => _$EmployeesDataItemDtoFromJson(json);
+  factory EmployeesDataItemDto.fromJson(Map<String, dynamic> json) =>
+      _$EmployeesDataItemDtoFromJson(json);
 
   @override
   List<Object?> get props => [
@@ -71,5 +82,6 @@ class EmployeesDataItemDto extends Equatable {
     isActive,
     createdAt,
     updatedAt,
+    faceEnrollment,
   ];
 }

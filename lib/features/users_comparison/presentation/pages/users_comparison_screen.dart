@@ -39,7 +39,9 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
         password: widget.hikvisionPassword,
       );
     }
-    context.read<UsersComparisonBloc>().add(UsersComparisonStarted(organizationId: widget.organizationId));
+    context.read<UsersComparisonBloc>().add(
+      UsersComparisonStarted(organizationId: widget.organizationId),
+    );
   }
 
   @override
@@ -47,7 +49,11 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
     return BlocBuilder<UsersComparisonBloc, UsersComparisonState>(
       builder: (context, state) {
         if (state is UsersComparisonLoading) {
-          return Scaffold(body: Center(child: CircularProgressIndicator(color: context.onPrimaryColor)));
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: context.onPrimaryColor),
+            ),
+          );
         }
 
         if (state is UsersComparisonFailure) {
@@ -58,23 +64,41 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
         }
 
         final content = state as UsersComparisonContent;
+        final backendFaceImageCount = content.backendUsers
+            .where((user) => user.faceImageUrl.trim().isNotEmpty)
+            .length;
         return Scaffold(
           appBar: AppBar(
-            title: Text('Users comparison', style: context.textTheme.bodyMedium!.copyWith(fontSize: 16.sp)),
+            title: Text(
+              'Users comparison',
+              style: context.textTheme.bodyMedium!.copyWith(fontSize: 16.sp),
+            ),
             centerTitle: true,
           ),
           body: Padding(
             padding: EdgeInsets.all(16.w),
             child: Column(
               children: [
-                _CountCard(title: 'Backend — staff (ids)', count: content.staffBackendIds.length),
+                _CountCard(
+                  title: 'Backend — staff (ids)',
+                  count: content.staffBackendIds.length,
+                ),
                 SizedBox(height: 12.h),
-                _CountCard(title: 'Backend — employee (ids)', count: content.employeeBackendIds.length),
+                _CountCard(
+                  title: 'Backend — employee (ids)',
+                  count: content.employeeBackendIds.length,
+                ),
                 SizedBox(height: 12.h),
-                _CountCard(title: 'Backend — jami (noyob)', count: content.backendIds.length),
+                _CountCard(
+                  title: 'Backend — jami (noyob)',
+                  count: content.backendIds.length,
+                ),
                 SizedBox(height: 12.h),
-                _CountCard(title: 'Hikvision', count: content.hikvisionIds.length),
-                if (!state.isSynchronizing)
+                _CountCard(
+                  title: 'Hikvision',
+                  count: content.hikvisionIds.length,
+                ),
+                if (!content.isSynchronizing)
                   Padding(
                     padding: EdgeInsets.only(top: 8.h),
                     child: CustomButton(
@@ -88,98 +112,93 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
                       },
                       child: Text(
                         "Ma'lumotlarni sinxromlash",
-                        style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16, fontWeight: FontWeight.w400),
+                        style: context.textTheme.bodyMedium!.copyWith(
+                          color: cWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
                   ),
-                /*CButton(
-                    onTap: () {
-                      context.read<UsersComparisonBloc>().add(
-                        DataSynchronizationUsersComparisonEvent(
-                          backendIds: content.backendIds,
-                          hikvisionIds: content.hikvisionIds,
-                        ),
-                      );
-                    },
-                    text: "Ma'lumotlarni sinxromlash",
-                  ),*/
-                if (state.isSynchronizing)
+                if (content.isSynchronizing)
                   Padding(
                     padding: EdgeInsets.only(top: 12.h),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: Text(
-                            "Hikvisionda topilgan backend da yo'q foydalanuvchilar soni:",
-                            style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 14.sp),
-                          ),
+                        _SyncCountRow(
+                          title: "Backendda bor, Face ID'da yo'q:",
+                          count: content.backendUsersToCreate.length,
                         ),
-                        Expanded(
-                          child: Text(
-                            state.usersComparisonIds.length.toString(),
-                            style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor, fontSize: 18.sp),
-                          ),
+                        SizedBox(height: 8.h),
+                        _SyncCountRow(
+                          title: "Face ID'da bor, backendda yo'q:",
+                          count: content.usersComparisonIds.length,
+                        ),
+                        SizedBox(height: 8.h),
+                        _SyncCountRow(
+                          title: "Backendda rasmi bor, Face ID'ga yuboriladi:",
+                          count: backendFaceImageCount,
                         ),
                       ],
                     ),
                   ),
-                if (state.isSynchronizing)
+                if (content.isSynchronizing &&
+                    content.backendUsersToCreate.isEmpty &&
+                    content.usersComparisonIds.isEmpty &&
+                    backendFaceImageCount == 0)
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.h),
+                    child: Text(
+                      "Ma'lumotlar allaqachon mos.",
+                      style: context.textTheme.bodyMedium!.copyWith(
+                        color: cGreen,
+                        fontSize: 15.sp,
+                      ),
+                    ),
+                  ),
+                if (content.isSynchronizing &&
+                    (content.backendUsersToCreate.isNotEmpty ||
+                        content.usersComparisonIds.isNotEmpty ||
+                        backendFaceImageCount > 0))
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 16.h),
                     child: CustomButton(
+                      isLoading: content.isApplying,
                       onPressed: () async {
-                        final bloc = context.read<UsersComparisonBloc>();
-                        final confirmed =
-                            await showDialog<bool>(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text("Foydalanuvchilarni o'chirish"),
-                                content: const Text("Ushbu foydalanuvchilarni Hikvision'dan o'chirishni hohlaysizmi?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: Text('Bekor qilish', style: context.textTheme.bodyMedium!.copyWith(color: context.onPrimaryColor)),
-                                  ),
-                                  TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text("O'chirish", style: context.textTheme.bodyMedium!.copyWith(color: cRed))),
-                                ],
-                              ),
-                            ) ??
-                            false;
-
-                        if (confirmed) {
-                          bloc.add(DeleteUsersComparisonEvent(content.usersComparisonIds));
-                        }
-                      },
-                      child: Text(
-                        "Foydalanuvchilar o'chirilsinmi?",
-                        style: context.textTheme.bodyMedium!.copyWith(color: cWhite, fontSize: 16, fontWeight: FontWeight.w400),
-                      ),
-                    ),
-                    /*CButton(
-                      onTap: () async {
+                        if (content.isApplying) return;
                         final bloc = context.read<UsersComparisonBloc>();
                         final confirmed =
                             await showDialog<bool>(
                               context: context,
                               builder: (_) => AlertDialog(
                                 title: const Text(
-                                  "Foydalanuvchilarni o'chirish",
+                                  "Face ID ma'lumotlarini sinxronlash",
                                 ),
-                                content: const Text(
-                                  "Ushbu foydalanuvchilarni Hikvision'dan o'chirishni hohlaysizmi?",
+                                content: Text(
+                                  "Backenddagi ${content.backendUsersToCreate.length} ta foydalanuvchi Face ID'ga qo‘shiladi. "
+                                  "$backendFaceImageCount ta backend rasmi Face ID'ga yuboriladi. "
+                                  "Face ID'dagi ${content.usersComparisonIds.length} ta ortiqcha foydalanuvchi o‘chiriladi. Davom etilsinmi?",
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.of(context).pop(false),
-                                    child: const Text('Bekor qilish'),
+                                    child: Text(
+                                      'Bekor qilish',
+                                      style: context.textTheme.bodyMedium!
+                                          .copyWith(
+                                            color: context.onPrimaryColor,
+                                          ),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.of(context).pop(true),
-                                    child: const Text("O'chirish"),
+                                    child: Text(
+                                      "Sinxronlash",
+                                      style: context.textTheme.bodyMedium!
+                                          .copyWith(color: cBlue),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -188,20 +207,57 @@ class _UsersComparisonScreenState extends State<UsersComparisonScreen> {
 
                         if (confirmed) {
                           bloc.add(
-                            DeleteUsersComparisonEvent(
-                              content.usersComparisonIds,
-                            ),
+                            const ApplyUsersComparisonSynchronizationEvent(),
                           );
                         }
                       },
-                      text: "Foydalanuvchilar o'chirilsinmi?",
-                    ),*/
+                      child: Text(
+                        "Sinxronlashni bajarish",
+                        style: context.textTheme.bodyMedium!.copyWith(
+                          color: cWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _SyncCountRow extends StatelessWidget {
+  final String title;
+  final int count;
+
+  const _SyncCountRow({required this.title, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: context.textTheme.bodyMedium!.copyWith(
+              color: context.onPrimaryColor,
+              fontSize: 14.sp,
+            ),
+          ),
+        ),
+        Text(
+          count.toString(),
+          style: context.textTheme.bodyMedium!.copyWith(
+            color: context.onPrimaryColor,
+            fontSize: 18.sp,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -217,7 +273,10 @@ class _CountCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12.r), color: Colors.black.withValues(alpha: 0.04)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        color: Colors.black.withValues(alpha: 0.04),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

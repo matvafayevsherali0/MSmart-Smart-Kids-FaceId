@@ -12,6 +12,12 @@ abstract class HikvisionRemoteDataSource {
   Future<String?> getFaceUrlByEmployeeNo(String employeeNo);
   Future<List<int>> downloadBytesWithDigest(Uri uri);
   Future<String> captureFaceUrl();
+  Future<List<int>> captureFaceBytes();
+  Future<void> upsertFaceByBytes({
+    required String employeeNo,
+    required List<int> imageBytes,
+    required String name,
+  });
   Future<void> addFaceByUrl({
     required String employeeNo,
     required String faceUrl,
@@ -66,6 +72,20 @@ class HikvisionRemoteDataSourceImpl extends HikvisionRemoteDataSource {
   Future<String> captureFaceUrl() {
     return _service.captureFaceUrl();
   }
+
+  @override
+  Future<List<int>> captureFaceBytes() => _service.captureFaceBytes();
+
+  @override
+  Future<void> upsertFaceByBytes({
+    required String employeeNo,
+    required List<int> imageBytes,
+    required String name,
+  }) => _service.upsertFaceByBytes(
+    employeeNo: employeeNo,
+    imageBytes: imageBytes,
+    name: name,
+  );
 
   @override
   Future<void> addFaceByUrl({

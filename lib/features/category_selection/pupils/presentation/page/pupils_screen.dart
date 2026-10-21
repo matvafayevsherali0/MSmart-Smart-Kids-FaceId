@@ -95,13 +95,13 @@ class _PupilsScreenState extends State<PupilsScreen> {
     await done;
   }
 
-  void _openHikvision(
+  Future<void> _openHikvision(
     String id,
     String name,
     String faceEnrollmentId,
     String faceEnrollmentFileRelativeUrl,
-  ) {
-    context.push(
+  ) async {
+    final shouldRefresh = await context.push<bool>(
       AppRoutes.hikvision,
       extra: {
         'employeeNo': id,
@@ -117,6 +117,9 @@ class _PupilsScreenState extends State<PupilsScreen> {
         'studentId': id,
       },
     );
+
+    if (!mounted || shouldRefresh != true) return;
+    context.read<CategorySelectionBloc>().add(const CategoryPupilsRefresh());
   }
 
   @override
